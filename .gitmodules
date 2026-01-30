@@ -1,3 +1,6 @@
 [submodule "modules/jaison"]
 	path = modules/jaison
 	url = git@github.com:rluba/jaison.git
+[submodule "modules/GLFW/glfw"]
+	path = modules/GLFW/glfw
+	url = git@github.com:glfw/glfw.git
