@@ -48,9 +48,10 @@ create_window :: ($$title: string, vsync: bool) {
     }
 
     { // Window data population
+        window_data.is_vsync_enabled = vsync;
+
         width, height: s32;
         GLFW.get_framebuffer_size(window_data.window, *width, *height);
-
         window_data.pixel_width = cast(u32, width);
         window_data.pixel_height = cast(u32, height);
     }
@@ -71,14 +72,27 @@ poll_events :: inline () {
     GLFW.poll_events();
 }
 
+toggle_vsync :: () {
+    if window_data.is_vsync_enabled {
+        GLFW.set_swap_interval(0);
+    } else {
+        GLFW.set_swap_interval(1);
+    }
+
+    window_data.is_vsync_enabled = !window_data.is_vsync_enabled;
+}
+
 
 
 #scope_file
 
 Window_Data :: struct {
     window: *GLFW.Window;
+
     pixel_width: u32;
     pixel_height: u32;
+
+    is_vsync_enabled: bool;
 }
 
 window_data: Window_Data;
