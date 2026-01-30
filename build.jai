@@ -77,7 +77,12 @@ build :: (build_options_dc: Build_Options, config: Config) -> ok: bool, error_me
         build_options := get_build_options(workspace);
         copy_commonly_propagated_fields(build_options_dc, *build_options);
 
-        build_options.output_type = .EXECUTABLE;
+        #if #exists(JAILS_DIAGNOSTICS_BUILD) {
+            options.output_type = .NO_OUTPUT;
+        } else {
+            build_options.output_type = .EXECUTABLE;
+        }
+
         build_options.output_executable_name = EXECUTABLE_NAME;
         build_options.output_path = output_path;
         build_options.intermediate_path = output_path;
