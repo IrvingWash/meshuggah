@@ -32,8 +32,7 @@ Config :: struct {
     plugins_to_create: []Plugin_To_Create;
 }
 
-RUN_WHEN_READY_NOTE :: "RunWhenReady";
-when_redy_procedures: [..] *Code_Procedure_Header;
+when_ready_procedures: [..] *Code_Procedure_Header;
 
 #run,stallable {
     set_build_options_dc({
@@ -142,7 +141,7 @@ build :: (build_options_dc: Build_Options, config: Config) -> ok: bool, error_me
 handle_compiler_messages :: (
     plugins: []*Metaprogram_Plugin,
     config: Config,
-    workspace: Workspace
+    workspace: Workspace,
 ) {
     while true {
         message := compiler_wait_for_message();
@@ -153,41 +152,12 @@ handle_compiler_messages :: (
             }
         }
 
+        handle_run_when_ready(message);
+        handle_debug_constant(message, config, workspace);
+
         if message.kind == {
             case .COMPLETE;
                 break;
-            case .FILE;
-                file := cast(*Message_File, message);
-                if ends_with(file.fully_pathed_filename, "main.jai") {
-                    add_build_string(
-                        tprint(
-                            "DEBUG: bool : %;",
-                            config.optimization_type <= .VERY_DEBUG
-                        ),
-                        workspace,
-                        file
-                    );
-                }
-            case .TYPECHECKED;
-                // Run When Ready
-                typechecked := cast(*Message_Typechecked) message;
-                for tc: typechecked.procedure_headers {
-                    header := tc.expression;
-                    if has_note(header, RUN_WHEN_READY_NOTE) {
-                        array_add(*when_redy_procedures, header);
-                    }
-                }
-            case .PHASE;
-                // Run When Ready
-                phase := cast(*Message_Phase) message;
-                if phase.phase == .TYPECHECKED_ALL_WE_CAN {
-                    for when_redy_procedures {
-                        s := tprint("#run %();", it.name);
-                        add_build_string(s, message.workspace);
-                    }
-
-                    array_reset(*when_redy_procedures);
-                }
         }
     }
 }
@@ -215,6 +185,52 @@ make_config :: (arguments: []string) -> ok: bool, Config {
     }
 
     return ok, config;
+}
+
+handle_debug_constant :: (
+    message: *Message,
+    config: Config,
+    workspace: Workspace,
+) {
+    if message.kind == {
+        case .FILE;
+            file := cast(*Message_File, message);
+            if ends_with(file.fully_pathed_filename, "main.jai") {
+                add_build_string(
+                    tprint(
+                        "DEBUG: bool : %;",
+                        config.optimization_type <= .VERY_DEBUG
+                    ),
+                    workspace,
+                    file
+                );
+            }
+    }
+}
+
+handle_run_when_ready :: (message: *Message) {
+    RUN_WHEN_READY_NOTE :: "RunWhenReady";
+
+    if message.kind == {
+        case .TYPECHECKED;
+            typechecked := cast(*Message_Typechecked) message;
+            for tc: typechecked.procedure_headers {
+                header := tc.expression;
+                if has_note(header, RUN_WHEN_READY_NOTE) {
+                    array_add(*when_ready_procedures, header);
+                }
+            }
+        case .PHASE;
+            phase := cast(*Message_Phase) message;
+            if phase.phase == .TYPECHECKED_ALL_WE_CAN {
+                for when_ready_procedures {
+                    s := tprint("#run %();", it.name);
+                    add_build_string(s, message.workspace);
+                }
+
+                array_reset(*when_ready_procedures);
+            }
+    }
 }
 
 has_note :: (header: *Code_Procedure_Header, note: string) -> bool {
