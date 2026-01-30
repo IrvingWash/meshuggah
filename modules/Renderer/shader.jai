@@ -10,8 +10,8 @@ create_shader :: (vertex_path: string, fragment_path: string) -> Shader {
 
     using gl;
 
-    vertex_shader := create_shader(vertex_path, .VERTEX);
-    fragment_shader := create_shader(fragment_path, .FRAGMENT);
+    vertex_shader := make_shader(vertex_path, .VERTEX);
+    fragment_shader := make_shader(fragment_path, .FRAGMENT);
     defer glDeleteShader(vertex_shader);
     defer glDeleteShader(fragment_shader);
 
@@ -136,7 +136,7 @@ make_shader :: (path: string, kind: Shader_Kind) -> u32 {
         assert(
             false,
             "Failed to compile a % shader from %: %",
-            kind, path, to_string(info_log,, tem),
+            kind, path, to_string(info_log,, temp),
         );
     }
 
@@ -168,6 +168,7 @@ make_program :: (vertex_shader: GLuint, fragment_shader: GLuint) -> GLuint {
     return id;
 }
 
+#import "Basic";
 #import "File";
 #import "Hash_Table";
 #import "GL";

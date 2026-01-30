@@ -301,6 +301,7 @@ glfwGetVideoMode :: (monitor: *Monitor) -> *GLFWvidmode #foreign GLFW;
         #library,system,link_always "shell32";
     case .LINUX;
         GLFW :: #library,no_dll "linux/libglfw3";
+        #library,system,link_always "libm";
 }
 
 #import "Basic";

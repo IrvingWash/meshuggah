@@ -7,6 +7,7 @@
     VISUALIZE_MEMORY_DEBUGGER = DEBUG,
 );
 
+Window :: #import "Window";
 Renderer :: #import "Renderer";
 GLTF :: #import "GLTF";
 
@@ -17,6 +18,9 @@ main :: () {
 
     setup_formatting();
 
+    Window.create_window("Meshuggah", vsync = true);
+    defer Window.destroy_window();
+
     Renderer.init();
     defer Renderer.deinit();
 
@@ -24,11 +28,17 @@ main :: () {
     defer GLTF.release(model);
     print("%\n", model);
 
-    Renderer.start_drawing();
-    Renderer.draw();
-    Renderer.finish_drawing();
+    while !Window.should_window_close() {
+        Window.poll_events();
 
-    print("Hello, Sailor!");
+        Renderer.start_drawing();
+        Renderer.draw();
+        Renderer.finish_drawing();
+
+        #if DEBUG {
+            memory_visualizer_per_frame_update();
+        }
+    }
 }
 
 setup_formatting :: () {
