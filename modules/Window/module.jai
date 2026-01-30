@@ -1,5 +1,13 @@
+Key :: GLFW.Key;
+Key_State :: GLFW.Key_State;
+
+Framebuffer_Size_Change_Handler :: #type (width: u32, height: u32);
+Scroll_Handler :: #type (x_offset: float, y_offset: float);
+Cursor_Position_Change_Handler :: #type (x: float, y: float);
+Key_Handler :: #type (key: Key, state: Key_State);
+
 create_window :: ($$title: string, vsync: bool) {
-    GLFW.set_error_callback(on_glfw_error);
+    GLFW.set_error_callback(handle_glfw_error);
 
     { // GLFW intitalization
         is_glfw_initialized := GLFW.init();
@@ -42,9 +50,23 @@ create_window :: ($$title: string, vsync: bool) {
         }
     }
 
-    { // OpenGL setup
-        #import "GL"; 
-        gl_load(*gl, GLFW.get_proc_address);
+    { // Callbacks
+        GLFW.set_framebuffer_size_callback(
+            window_data.window,
+            handle_framebuffer_size_change,
+        );
+        GLFW.set_scroll_callback(
+            window_data.window,
+            handle_scroll,
+        );
+        GLFW.set_cursor_position_callback(
+            window_data.window,
+            handle_cursor_position_change,
+        );
+        GLFW.set_key_callback(
+            window_data.window,
+            handle_key,
+        );
     }
 
     { // Window data population
@@ -55,6 +77,10 @@ create_window :: ($$title: string, vsync: bool) {
         window_data.pixel_width = cast(u32, width);
         window_data.pixel_height = cast(u32, height);
     }
+
+    { // OpenGL initialization
+        gl_load(*gl, GLFW.get_proc_address);
+    }
 }
 
 destroy_window :: () {
@@ -62,6 +88,11 @@ destroy_window :: () {
     GLFW.terminate();
 
     window_data.window = null;
+
+    array_free(window_data.framebuffer_size_change_handlers);
+    array_free(window_data.scroll_handlers);
+    array_free(window_data.cursor_position_change_handlers);
+    array_free(window_data.key_handlers);
 }
 
 should_window_close :: inline () -> bool {
@@ -72,6 +103,10 @@ poll_events :: inline () {
     GLFW.poll_events();
 }
 
+swap_buffers :: inline () {
+    GLFW.swap_buffers(window_data.window);
+}
+
 toggle_vsync :: () {
     if window_data.is_vsync_enabled {
         GLFW.set_swap_interval(0);
@@ -80,6 +115,36 @@ toggle_vsync :: () {
     }
 
     window_data.is_vsync_enabled = !window_data.is_vsync_enabled;
+}
+
+add_framebuffer_size_change_handler :: (
+    handler: Framebuffer_Size_Change_Handler,
+) {
+    array_add(*window_data.framebuffer_size_change_handlers, handler);
+}
+
+add_scroll_handler :: (
+    handler: Scroll_Handler,
+) {
+    array_add(*window_data.scroll_handlers, handler);
+}
+
+add_cursor_position_change_handler :: (
+    handler: Cursor_Position_Change_Handler,
+) {
+    array_add(
+        *window_data.cursor_position_change_handlers,
+        handler,
+    );
+}
+
+add_key_handler :: (
+    handler: Key_Handler,
+) {
+    array_add(
+        *window_data.key_handlers,
+        handler,
+    );
 }
 
 
@@ -93,11 +158,16 @@ Window_Data :: struct {
     pixel_height: u32;
 
     is_vsync_enabled: bool;
+
+    framebuffer_size_change_handlers: [..]Framebuffer_Size_Change_Handler;
+    scroll_handlers: [..]Scroll_Handler;
+    cursor_position_change_handlers: [..]Cursor_Position_Change_Handler;
+    key_handlers: [..]Key_Handler;
 }
 
 window_data: Window_Data;
 
-on_glfw_error: GLFW.Error_Proc : (code: s32, description: *u8) #c_call {
+handle_glfw_error: GLFW.Error_Proc : (code: s32, description: *u8) #c_call {
     push_context {
         log_error(
             "GLFW error. Code: %, description: %",
@@ -107,5 +177,61 @@ on_glfw_error: GLFW.Error_Proc : (code: s32, description: *u8) #c_call {
     }
 }
 
+handle_framebuffer_size_change: GLFW.Framebuffer_Size_Proc : (
+    window: *GLFW.Window,
+    width: s32,
+    height: s32,
+) #c_call {
+    window_data.pixel_width = cast(u32, width);
+    window_data.pixel_height = cast(u32, height);
+
+    gl.glViewport(0, 0, cast(u32, width), cast(u32, height));
+
+    push_context {
+        for proc: window_data.framebuffer_size_change_handlers {
+            proc(window_data.pixel_width, window_data.pixel_height);
+        }
+    }
+}
+
+handle_scroll: GLFW.Scroll_Proc : (
+    window: *GLFW.Window,
+    x_offset: float64,
+    y_offset: float64,
+) #c_call {
+    push_context {
+        for proc: window_data.scroll_handlers {
+            proc(cast(float, x_offset), cast(float, y_offset));
+        }
+    }
+}
+
+handle_cursor_position_change: GLFW.Cursor_Position_Proc : (
+    window: *GLFW.Window,
+    x: float64,
+    y: float64,
+) #c_call {
+    push_context {
+        for proc: window_data.cursor_position_change_handlers {
+            proc(cast(float, x), cast(float, y));
+        }
+    }
+}
+
+handle_key: GLFW.Key_Proc : (
+    window: *GLFW.Window,
+    key: GLFW.Key,
+    scan_code: s32,
+    action: GLFW.Key_State,
+    mods: s32,
+) #c_call {
+    push_context {
+        for proc: window_data.key_handlers {
+            proc(key, action);
+        }
+    }
+}
+
 #import "Basic";
+#import "GL";
 GLFW :: #import "GLFW";

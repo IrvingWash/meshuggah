@@ -28,12 +28,35 @@ main :: () {
     defer GLTF.release(model);
     print("%\n", model);
 
+    Window.add_key_handler(
+        (key: Window.Key, key_state: Window.Key_State) {
+            print("Key: %, key_state: %\n", key, key_state);
+        }
+    );
+    Window.add_scroll_handler(
+        (x_offset: float, y_offset: float) {
+            print("X offset: %, y offset: %\n", x_offset, y_offset);
+        }
+    );
+    Window.add_cursor_position_change_handler(
+        (x: float, y: float) {
+            print("X: %, y: %\n", x, y);
+        }
+    );
+    Window.add_framebuffer_size_change_handler(
+        (width: u32, height: u32) {
+            print("Width: %, height: %\n", width, height);
+        }
+    );
+
     while !Window.should_window_close() {
         Window.poll_events();
 
         Renderer.start_drawing();
         Renderer.draw();
         Renderer.finish_drawing();
+
+        Window.swap_buffers();
 
         #if DEBUG {
             memory_visualizer_per_frame_update();
