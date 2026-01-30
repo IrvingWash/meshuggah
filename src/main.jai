@@ -7,12 +7,26 @@
     VISUALIZE_MEMORY_DEBUGGER = DEBUG,
 );
 
+Renderer :: #import "Renderer";
+GLTF :: #import "GLTF";
+
 main :: () {
     #if DEBUG {
         defer report_memory_leaks();
     }
 
     setup_formatting();
+
+    Renderer.init();
+    defer Renderer.deinit();
+
+    model := GLTF.load("assets/models/cube.gltf");
+    defer GLTF.release(model);
+    print("%\n", model);
+
+    Renderer.start_drawing();
+    Renderer.draw();
+    Renderer.finish_drawing();
 
     print("Hello, Sailor!");
 }

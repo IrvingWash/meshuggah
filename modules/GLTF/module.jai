@@ -1,3 +1,5 @@
+#import "Basic";
+#import "File";
 #import "jaison";
 
 GLTF :: struct {
@@ -12,7 +14,7 @@ GLTF :: struct {
 
 GLTF_Scene :: struct {
     name: string;
-    nodes: []u32;
+    nodes: [..]u32;
 }
 
 GLTF_Node :: struct {
@@ -55,4 +57,48 @@ GLTF_Buffer_View :: struct {
 GLTF_Buffer :: struct {
     byte_length: u32; @JsonName(byteLength)
     uri: string;
+}
+
+load :: (path: string) -> GLTF {
+    data, ok := read_entire_file(path,, temp);
+    assert(ok, "Failed to read GLTF file from %", path);
+
+    ok =, gltf := json_parse_string(data, GLTF);
+    assert(ok, "Failed to parse GLTF file from %", path);
+
+    return gltf;
+}
+
+release :: (gltf: GLTF) {
+    for scene: gltf.scenes {
+        free(scene.name);
+        array_free(scene.nodes);
+    }
+    array_free(gltf.scenes);
+
+    for node: gltf.nodes {
+        free(node.name);
+    }
+    array_free(gltf.nodes);
+
+    for mesh: gltf.meshes {
+        free(mesh.name);
+
+        array_free(mesh.primitives);
+    }
+    array_free(gltf.meshes);
+
+    for accessor: gltf.accessors {
+        array_free(accessor.max);
+        array_free(accessor.min);
+        free(accessor.type);
+    }
+    array_free(gltf.accessors);
+
+    array_free(gltf.buffer_views);
+
+    for buffer: gltf.buffers {
+        free(buffer.uri);
+    }
+    array_free(gltf.buffers);
 }

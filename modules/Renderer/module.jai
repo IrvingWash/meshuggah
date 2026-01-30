@@ -1,3 +1,1 @@
-#scope_file
-
-#load "shader.jai";
+#load "renderer.jai";
