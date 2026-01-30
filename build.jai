@@ -32,6 +32,7 @@ Config :: struct {
     plugins_to_create: []Plugin_To_Create;
 }
 
+RUN_WHEN_READY_NOTE :: "RunWhenReady";
 when_redy_procedures: [..] *Code_Procedure_Header;
 
 #run,stallable {
@@ -168,14 +169,16 @@ handle_compiler_messages :: (
                     );
                 }
             case .TYPECHECKED;
+                // Run When Ready
                 typechecked := cast(*Message_Typechecked) message;
                 for tc: typechecked.procedure_headers {
                     header := tc.expression;
-                    if has_note(header, "RunWhenReady") {
+                    if has_note(header, RUN_WHEN_READY_NOTE) {
                         array_add(*when_redy_procedures, header);
                     }
                 }
             case .PHASE;
+                // Run When Ready
                 phase := cast(*Message_Phase) message;
                 if phase.phase == .TYPECHECKED_ALL_WE_CAN {
                     for when_redy_procedures {
