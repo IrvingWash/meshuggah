@@ -42,7 +42,7 @@ when_ready_procedures: [..] *Code_Procedure_Header;
 
     build_options_dc := get_build_options();
 
-    ok, config := make_config(build_options_dc.compile_time_command_line);
+    ok, config := create_config(build_options_dc.compile_time_command_line);
     if !ok {
         log_error("Failed to configure the build");
         return;
@@ -162,8 +162,10 @@ handle_compiler_messages :: (
     }
 }
 
-make_config :: (arguments: []string) -> ok: bool, Config {
+create_config :: (arguments: []string) -> ok: bool, Config {
     config: Config;
+    unknown_flags: [..]string;
+    unknown_flags.allocator = temp;
 
     for argument: arguments {
         if argument == {
@@ -175,7 +177,16 @@ make_config :: (arguments: []string) -> ok: bool, Config {
                 config.optimization_type = .VERY_OPTIMIZED;
             case "--debug";
                 config.optimization_type = .DEBUG;
+            case;
+                if !starts_with(argument, "+") { // Any plugins can be passed
+                    array_add_if_unique(*unknown_flags, argument);
+                }
         }
+    }
+
+    if unknown_flags.count > 0 {
+        log_error("Encountered unknown command line flags: %", join(..unknown_flags, separator = ", "));
+        return false, config;
     }
 
     ok, plugins_to_create := parse_plugin_arguments(arguments);
