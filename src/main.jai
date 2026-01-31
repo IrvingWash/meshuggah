@@ -34,16 +34,12 @@ main :: () {
         up: Vector3 = { 0, 1, 0 };
     } = {};
 
-    rotation: float = 0;
-
     while !Engine.is_quit_requested() {
         Engine.begin_frame();
 
-        rotation += deg_to_rad(10) * Engine.get_delta_time();
         translation_transform := make_translation_matrix4({});
         scale_transform := make_scale_matrix4({ 1, 1, 1 });
         orientation: Quaternion;
-        set_from_axis_and_angle(*orientation, { 1, 1, 1 }, rotation);
         rotation_transform := rotation_matrix(Matrix4, orientation);
 
         model_transform := translation_transform * rotation_transform * scale_transform;

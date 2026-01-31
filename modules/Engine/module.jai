@@ -15,7 +15,7 @@ deinit :: () {
 begin_frame :: () {
     update_time();
 
-    Window.poll_events();
+    process_input();
 }
 
 end_frame :: () {
@@ -32,3 +32,4 @@ Window :: #import "Window";
 Renderer :: #import "Renderer";
 #load "asset_storage.jai";
 #load "time.jai";
+#load "input.jai";

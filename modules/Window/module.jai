@@ -236,6 +236,10 @@ get_framebuffer_size :: () -> u32, u32 {
     return window_data.framebuffer_width, window_data.framebuffer_height;
 }
 
+get_key :: inline (key: Key) -> Key_State {
+    return GLFW.get_key(window_data.window, key);
+}
+
 
 
 #scope_file
