@@ -140,8 +140,8 @@ parse_attribute :: (
     element_size := component_count * component_byte_size;
 
     step := ifx buffer_view.byte_stride != 0
-    then buffer_view.byte_stride
-    else element_size;
+        then buffer_view.byte_stride
+        else element_size;
 
     result: [..]T;
     for 0..(element_count - 1) {
