@@ -11,7 +11,6 @@
 Engine :: #import "Engine"()(DEBUG = DEBUG);
 Window :: #import "Window";
 Renderer :: #import "Renderer"()(DEBUG = DEBUG);
-GLTF :: #import "GLTF"(VALIDATE = DEBUG);
 
 TRIANGLE_INDICES :: u32.[
     0, 1, 2,
@@ -51,12 +50,10 @@ main :: () {
     Engine.init_asset_storage();
     defer Engine.deinit_asset_storage();
 
-    ok, message, gltf_triangle := GLTF.load("assets/models/cube/cube.gltf");
-    assert(ok, message);
-    defer GLTF.release(*gltf_triangle);
-
-    triangle := Renderer.create_model(TRIANGLE_VERTICES, TRIANGLE_INDICES);
+    triangle := Renderer.create_model(Renderer.Mesh_Data.[{ vertices = TRIANGLE_VERTICES, indices = TRIANGLE_INDICES }]);
     defer Renderer.destroy_model(*triangle);
+
+    Engine.get_model("./assets/models/cube/cube.gltf");
 
     camera: struct {
         position: Vector3 = { 0, 0, 3 };

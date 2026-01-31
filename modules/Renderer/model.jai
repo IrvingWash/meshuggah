@@ -1,6 +1,5 @@
 Model :: struct {
-    mesh: Mesh;
-    material: Material;
+    meshes: [..]Mesh;
 }
 
 Mesh :: struct {
@@ -9,11 +8,6 @@ Mesh :: struct {
     ebo: u32;
 
     index_count: u32;
-}
-
-Material :: struct {
-    shader: Shader;
-    color: Vector4;
 }
 
 Vertex :: struct {
@@ -28,16 +22,29 @@ Vertex_Attribute_Offsets  :: struct {
     UV       :: #run offset_of(Vertex, "uv");
 }
 
-create_model :: (vertices: []Vertex, indices: []u32) -> Model {
+Mesh_Data :: struct {
+    vertices: []Vertex;
+    indices:  []u32;
+}
+
+create_model :: (mesh_data: []$T/interface Mesh_Data) -> Model {
     model: Model;
 
-    model.mesh = create_mesh(vertices, indices);
+    for mesh: mesh_data {
+        array_add(
+            *model.meshes,
+            create_mesh(mesh.vertices, mesh.indices),
+        );
+    }
 
     return model;
 }
 
 destroy_model :: (model: *Model) {
-    destroy_mesh(*model.mesh);
+    for *mesh: model.meshes {
+        destroy_mesh(mesh);
+    }
+    array_free(model.meshes);
 
     model.* = {};
 }
@@ -46,7 +53,7 @@ destroy_model :: (model: *Model) {
 
 #scope_file
 
-create_mesh :: (vertices: []Vertex, indices: []u32) -> Mesh {
+create_mesh :: (vertices: []$T/interface Vertex, indices: []u32) -> Mesh {
     mesh: Mesh;
 
     mesh.index_count = cast(u32, indices.count);

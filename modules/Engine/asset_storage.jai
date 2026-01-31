@@ -10,17 +10,17 @@ get_model :: (path: string) -> Asset_Handle {
     absolute_path, ok := get_absolute_path(path);
     assert(ok, "Failed to get absolute path for %", path);
 
-    ok, handle := table_find(asset_storage.model_storage.map, absolute_path);
+    ok =, handle := table_find(*asset_storage.model_storage.map, absolute_path);
     if !ok {
         ok =, error_message, model_data := GLTF.load(absolute_path);
         assert(ok, error_message);
-        defer GLTF.release(model_data);
+        defer GLTF.release(*model_data);
 
-        model := Renderer.create_model(model_data);
+        model := Renderer.create_model(model_data.meshes);
 
         array_add(*asset_storage.model_storage.models, model);
 
-        handle = asset_storage.model_storage.models.count - 1;
+        handle = cast(u32, asset_storage.model_storage.models.count - 1);
 
         table_set(*asset_storage.model_storage.map, copy_string(absolute_path), handle);
     }

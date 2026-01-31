@@ -8,42 +8,19 @@
 		{
 			"name":"Scene",
 			"nodes":[
-				0,
-				1
+				0
 			]
 		}
 	],
 	"nodes":[
 		{
-			"camera":0,
-			"name":"Camera",
-			"rotation":[
-				-0.1918478012084961,
-				0.5313774943351746,
-				0.12499147653579712,
-				0.8156037926673889
-			]
-		},
-		{
 			"mesh":0,
 			"name":"Cube"
 		}
 	],
-	"cameras":[
-		{
-			"name":"Camera.001",
-			"perspective":{
-				"aspectRatio":1.7777777777777777,
-				"yfov":0.39959652046304894,
-				"zfar":1000,
-				"znear":0.10000000149011612
-			},
-			"type":"perspective"
-		}
-	],
 	"meshes":[
 		{
-			"name":"Cube.002",
+			"name":"Cube.001",
 			"primitives":[
 				{
 					"attributes":{

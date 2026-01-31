@@ -94,7 +94,7 @@ parse_gltf_file :: (path: string) -> ok: bool, error_message: string, GLTF {
     #if VALIDATE {
         ok =, errors: = validate(gltf);
         if !ok {
-            return false, sprint("Invalid gltf file at %: %", path, join(..errors, separator = ", ")), {};
+            return false, sprint("Invalid gltf file at %: %", path, errors), {};
         }
     }
 
@@ -147,76 +147,7 @@ release_gltf_file :: (gltf: *GLTF) {
 validate :: (gltf: GLTF) -> ok: bool, errors: []string {
     errors: [..]string;
 
-    if gltf.scene == -1 {
-        array_add(
-            *errors,
-            "No scene",
-        );
-    }
-
-    for buffer_view: gltf.buffer_views {
-        if buffer_view.buffer < gltf.buffers.count {
-            continue;
-        };
-
-        array_add(
-            *errors,
-            "Buffer view references a non-existent buffer",
-        );
-        break;
-    }
-
-    for buffer_view: gltf.buffer_views {
-        if buffer_view.byte_length > 0 {
-            continue;
-        }
-
-        array_add(
-            *errors,
-            "Buffer view with incorrect byte length",
-        );
-        break;
-    }
-
-    for accessor: gltf.accessors {
-        if accessor.type != "" {
-            continue;
-        }
-
-        array_add(
-            *errors,
-            "Accessor doesn't have a type",
-        );
-        break;
-    }
-
-    for accessor: gltf.accessors {
-        if accessor.count > 0 {
-            continue;
-        }
-
-        array_add(
-            *errors,
-            "Accessor with incorrect count",
-        );
-        break;
-    }
-
-    done: bool;
-    for mesh: gltf.meshes {
-        if done {
-            break;
-        }
-
-        for primitive: mesh.primitives {
-            if primitive.attributes.POSITION != -1 {
-                continue;
-            }
-
-            array_add(*errors, "Primitive doesn't have a position attribute");
-            break;
-        }
-    }
+    // @Incomplete
 
     return errors.count == 0, errors;
 }

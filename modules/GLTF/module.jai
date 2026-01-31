@@ -28,12 +28,8 @@ load :: (path: string) -> ok: bool, error_message: string, Model {
     }
     defer release_gltf_file(*gltf);
 
-    // Sanity checks
     if gltf.scenes.count != 1 {
-        return false, sprint("Multi-scene gltf files arne not supported, % has % scenes", path, gltf.scenes.count), {};
-    }
-    if gltf.scene == -1 {
-        return false, sprint("No scene in %", path), {};
+        return false, sprint("Multi-scene gltf files are not supported, % has % scenes", path, gltf.scenes.count), {};
     }
 
     root_directory := path_strip_filename(path);

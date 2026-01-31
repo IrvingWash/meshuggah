@@ -41,14 +41,16 @@ draw :: (model: Model, model_transform: Matrix4) {
     set_uniform(renderer.shader, "uProjectionTransform", renderer.transforms.perspective_projection);
     set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
 
-    glBindVertexArray(model.mesh.vao);
+    for mesh: model.meshes {
+        glBindVertexArray(mesh.vao);
 
-    glDrawElements(
-        GL_TRIANGLES,
-        cast(GLsizei, model.mesh.index_count),
-        GL_UNSIGNED_INT,
-        cast(*void, 0),
-    );
+        glDrawElements(
+            GL_TRIANGLES,
+            cast(GLsizei, mesh.index_count),
+            GL_UNSIGNED_INT,
+            cast(*void, 0),
+        );
+    }
 }
 
 end_frame :: () {}
