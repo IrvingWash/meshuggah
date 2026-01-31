@@ -6,10 +6,21 @@
     ENABLE_ASSERT = DEBUG,
     VISUALIZE_MEMORY_DEBUGGER = DEBUG,
 );
+#import "Math";
 
 Window :: #import "Window";
 Renderer :: #import "Renderer";
 GLTF :: #import "GLTF";
+
+TRIANGLE_INDICES :: u32.[
+    0, 1, 2,
+];
+
+TRIANGLE_VERTICES :: float.[
+     0.0,  0.5, 0,
+    -0.5, -0.5, 0,
+     0.5, -0.5, 0,
+];
 
 main :: () {
     #if DEBUG {
@@ -27,11 +38,14 @@ main :: () {
     model := GLTF.load("assets/models/triangle/triangle.gltf");
     defer GLTF.release(model);
 
+    triangle := Renderer.create_model(TRIANGLE_VERTICES, TRIANGLE_INDICES);
+    defer Renderer.destroy_model(*triangle);
+
     while !Window.should_window_close() {
         Window.poll_events();
 
         Renderer.begin_frame();
-        // Renderer.draw();
+        Renderer.draw(triangle, Matrix4_Identity);
         Renderer.end_frame();
 
         Window.swap_buffers();

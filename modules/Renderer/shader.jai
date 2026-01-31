@@ -33,7 +33,7 @@ destroy_shader :: (shader: *Shader) {
     deinit(*shader.uniform_locations);
 }
 
-use_shader :: inline (shader: *Shader) {
+use_shader :: inline (shader: Shader) {
     using gl;
 
     glUseProgram(shader.id);

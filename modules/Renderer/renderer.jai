@@ -29,7 +29,20 @@ begin_frame :: () {
     begin_backbuffer_pass(clear = true);
 }
 
-draw :: (model: Model) {}
+draw :: (model: Model, model_transform: Matrix4) {
+    using gl;
+
+    use_shader(renderer.shader);
+
+    glBindVertexArray(model.mesh.vao);
+
+    glDrawElements(
+        GL_TRIANGLES,
+        cast(GLsizei, model.mesh.index_count),
+        GL_UNSIGNED_INT,
+        cast(*void, 0),
+    );
+}
 
 end_frame :: () {}
 

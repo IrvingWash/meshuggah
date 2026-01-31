@@ -9,7 +9,6 @@ Mesh :: struct {
     ebo: u32;
 
     index_count: u32;
-    index_type:  u32;
 }
 
 Material :: struct {
@@ -17,10 +16,10 @@ Material :: struct {
     color: Vector4;
 }
 
-create_model :: () -> Model {
+create_model :: (vertices: []float, indices: []u32) -> Model {
     model: Model;
 
-    model.mesh = create_mesh();
+    model.mesh = create_mesh(vertices, indices);
 
     return model;
 }
@@ -28,21 +27,56 @@ create_model :: () -> Model {
 destroy_model :: (model: *Model) {
     destroy_mesh(*model.mesh);
 
-    model = {};
+    model.* = {};
 }
 
 
 
 #scope_file
 
-create_mesh :: () -> Mesh {
+create_mesh :: (vertices: []float, indices: []u32) -> Mesh {
     mesh: Mesh;
+
+    mesh.index_count = cast(u32, indices.count);
 
     using gl;
 
     glGenVertexArrays(1, *mesh.vao);
     glGenBuffers(1, *mesh.vbo);
     glGenBuffers(1, *mesh.ebo);
+
+    glBindVertexArray(mesh.vao);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        indices.count * size_of(u32),
+        indices.data,
+        GL_STATIC_DRAW,
+    );
+
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        vertices.count * size_of(float),
+        vertices.data,
+        GL_STATIC_DRAW,
+    );
+
+    // Position
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        size_of(Vector3),
+        cast(*void, 0),
+    );
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return mesh;
 }
@@ -54,7 +88,7 @@ destroy_mesh :: (mesh: *Mesh) {
     glDeleteBuffers(1, *mesh.vbo);
     glDeleteBuffers(1, *mesh.ebo);
 
-    mesh = {};
+    mesh.* = Mesh.{};
 }
 
 #import "GL";
