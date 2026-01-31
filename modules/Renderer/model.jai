@@ -16,7 +16,13 @@ Material :: struct {
     color: Vector4;
 }
 
-create_model :: (vertices: []float, indices: []u32) -> Model {
+Vertex :: struct {
+    position: Vector3;
+    normal:   Vector3;
+    uv:       Vector2;
+}
+
+create_model :: (vertices: []Vertex, indices: []u32) -> Model {
     model: Model;
 
     model.mesh = create_mesh(vertices, indices);
@@ -34,7 +40,7 @@ destroy_model :: (model: *Model) {
 
 #scope_file
 
-create_mesh :: (vertices: []float, indices: []u32) -> Mesh {
+create_mesh :: (vertices: []Vertex, indices: []u32) -> Mesh {
     mesh: Mesh;
 
     mesh.index_count = cast(u32, indices.count);
@@ -58,7 +64,7 @@ create_mesh :: (vertices: []float, indices: []u32) -> Mesh {
     glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
-        vertices.count * size_of(float),
+        vertices.count * size_of(Vertex),
         vertices.data,
         GL_STATIC_DRAW,
     );
@@ -70,8 +76,30 @@ create_mesh :: (vertices: []float, indices: []u32) -> Mesh {
         3,
         GL_FLOAT,
         GL_FALSE,
-        size_of(Vector3),
-        cast(*void, 0),
+        size_of(Vertex),
+        cast(*void, offset_of(Vertex, "position")),
+    );
+
+    // Normal
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        size_of(Vertex),
+        cast(*void, offset_of(Vertex, "normal")),
+    );
+
+    // UV
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(
+        2,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        size_of(Vertex),
+        cast(*void, offset_of(Vertex, "uv")),
     );
 
     glBindVertexArray(0);
@@ -89,6 +117,17 @@ destroy_mesh :: (mesh: *Mesh) {
     glDeleteBuffers(1, *mesh.ebo);
 
     mesh.* = Mesh.{};
+}
+
+offset_of :: ($T: Type, $member: string) -> int {
+    for type_info(T).members {
+        if it.name == member{
+            return it.offset_in_bytes;
+        }
+    }
+
+    assert(false, "Type '%' does not have member '%'", T, member);
+    return -1;
 }
 
 #import "GL";

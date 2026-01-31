@@ -16,10 +16,22 @@ TRIANGLE_INDICES :: u32.[
     0, 1, 2,
 ];
 
-TRIANGLE_VERTICES :: float.[
-     0.0,  0.5, 0,
-    -0.5, -0.5, 0,
-     0.5, -0.5, 0,
+TRIANGLE_VERTICES :: Renderer.Vertex.[
+    {
+        position = { 0, 0.5, 0 },
+        normal = { 0, 0, 1 },
+        uv = { 1, 0 },
+    },
+    {
+        position = { -0.5, -0.5, 0 },
+        normal = { 0, 0, 1 },
+        uv = { 1, 0 },
+    },
+    {
+        position = { 0.5, -0.5, 0 },
+        normal = { 0, 0, 1 },
+        uv = { 1, 0 },
+    },
 ];
 
 main :: () {
