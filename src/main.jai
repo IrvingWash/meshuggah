@@ -24,7 +24,7 @@ main :: () {
     Renderer.init(Window.get_framebuffer_size);
     defer Renderer.deinit();
 
-    model := GLTF.load("assets/models/cube.gltf");
+    model := GLTF.load("assets/models/triangle/triangle.gltf");
     defer GLTF.release(model);
 
     while !Window.should_window_close() {

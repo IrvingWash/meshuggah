@@ -3,6 +3,7 @@
 #import "jaison";
 
 GLTF :: struct {
+    asset: GLTF_Asset;
     scene: u32;
     scenes: [..]GLTF_Scene;
     nodes: [..]GLTF_Node;
@@ -11,6 +12,11 @@ GLTF :: struct {
     buffer_views: [..]GLTF_Buffer_View; @JsonName(bufferViews)
     buffers: [..]GLTF_Buffer;
 };
+
+GLTF_Asset :: struct {
+    generator: string;
+    version: string;
+}
 
 GLTF_Scene :: struct {
     name: string;
@@ -66,10 +72,20 @@ load :: (path: string) -> GLTF {
     ok =, gltf := json_parse_string(data, GLTF);
     assert(ok, "Failed to parse GLTF file from %", path);
 
+    assert(
+        gltf.asset.version == SUPPORTED_GLTF_VERSION,
+        "Only GLTF version % is supported, but tried to laod version %",
+        SUPPORTED_GLTF_VERSION,
+        gltf.asset.version,
+    );
+
     return gltf;
 }
 
 release :: (gltf: GLTF) {
+    free(gltf.asset.generator);
+    free(gltf.asset.version);
+
     for scene: gltf.scenes {
         free(scene.name);
         array_free(scene.nodes);
@@ -102,3 +118,9 @@ release :: (gltf: GLTF) {
     }
     array_free(gltf.buffers);
 }
+
+
+
+#scope_file
+
+SUPPORTED_GLTF_VERSION :: "2.0";
