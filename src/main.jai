@@ -9,7 +9,7 @@
 #import "Math";
 
 Engine :: #import "Engine"()(DEBUG = DEBUG);
-Renderer :: #import "Renderer"()(DEBUG = DEBUG);
+_ :: #import "Renderer"()(DEBUG = DEBUG); // @Sucks: rendering only to pass the module parameter
 
 main :: () {
     #if DEBUG {
@@ -44,9 +44,9 @@ main :: () {
 
         model_transform := translation_transform * rotation_transform * scale_transform;
 
-        Renderer.begin_frame(camera);
-        Renderer.draw(Engine.resolve_model_handle(mech_handle), model_transform);
-        Renderer.end_frame();
+        Engine.begin_drawing_frame(camera);
+        Engine.draw(Engine.resolve_model_handle(mech_handle), model_transform);
+        Engine.end_drawing_frame();
 
         Engine.end_frame();
 

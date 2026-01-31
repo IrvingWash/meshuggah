@@ -24,6 +24,9 @@ end_frame :: () {
 
 is_quit_requested :: Window.should_window_close;
 
+begin_drawing_frame :: Renderer.begin_frame;
+end_drawing_frame :: Renderer.end_frame;
+draw              :: Renderer.draw;
 
 
 #scope_file
