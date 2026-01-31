@@ -65,5 +65,5 @@ destroy_model_storage :: (model_storage: *Model_Storage) {
 #import "File";
 #import "Basic";
 #import "Hash_Table";
-GLTF :: #import "GLTF";
+GLTF :: #import "GLTF"(VALIDATE = DEBUG);
 Renderer :: #import "Renderer";

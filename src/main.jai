@@ -8,10 +8,10 @@
 );
 #import "Math";
 
-Engine :: #import "Engine";
+Engine :: #import "Engine"()(DEBUG = DEBUG);
 Window :: #import "Window";
 Renderer :: #import "Renderer"()(DEBUG = DEBUG);
-GLTF :: #import "GLTF";
+GLTF :: #import "GLTF"(VALIDATE = DEBUG);
 
 TRIANGLE_INDICES :: u32.[
     0, 1, 2,

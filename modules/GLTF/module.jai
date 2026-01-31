@@ -2,6 +2,8 @@
 #import "File";
 #import "jaison";
 
+#module_parameters(VALIDATE: bool = false);
+
 Model :: struct {
     meshes: [..]Mesh_Data;
 }

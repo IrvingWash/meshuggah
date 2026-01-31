@@ -91,9 +91,11 @@ parse_gltf_file :: (path: string) -> ok: bool, error_message: string, GLTF {
         return false, error_message, {};
     }
 
-    ok =, errors: = validate(gltf);
-    if !ok {
-        return false, sprint("Invalid gltf file at %: %", path, join(..errors, separator = ", ")), {};
+    #if VALIDATE {
+        ok =, errors: = validate(gltf);
+        if !ok {
+            return false, sprint("Invalid gltf file at %: %", path, join(..errors, separator = ", ")), {};
+        }
     }
 
     return true, "", gltf;
@@ -159,7 +161,7 @@ validate :: (gltf: GLTF) -> ok: bool, errors: []string {
 
         array_add(
             *errors,
-            "Buffer views without a buffer",
+            "Buffer view references a non-existent buffer",
         );
         break;
     }
@@ -200,13 +202,19 @@ validate :: (gltf: GLTF) -> ok: bool, errors: []string {
         break;
     }
 
+    done: bool;
     for mesh: gltf.meshes {
+        if done {
+            break;
+        }
+
         for primitive: mesh.primitives {
             if primitive.attributes.POSITION != -1 {
                 continue;
             }
 
-            array_add_if_unique(*errors, sprint("Primitive doesn't have position for mesh with name %", mesh.name));
+            array_add(*errors, "Primitive doesn't have a position attribute");
+            break;
         }
     }
 
