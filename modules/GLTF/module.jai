@@ -2,41 +2,43 @@
 #import "File";
 #import "jaison";
 
-Mesh_Data :: struct {
-    transform: Transform;
-
-    vertices: [..]Vertex;
-    indices:  [..]u32;
-
-    index_count: u32;
+Model :: struct {
+    meshes: [..]Mesh_Data;
 }
 
-Transform :: struct {
-    position: Vector3;
-    scale:    Vector3;
-    rotation: Quaternion;
+Mesh_Data :: struct {
+    vertices: [..]Vertex;
+    indices:  [..]u32;
 }
 
 Vertex :: struct {
     position: Vector3;
-    scale:    Vector3;
-    rotation: Vector3;
+    normal:   Vector3 = { 0, 0, 1 };
+    uv:       Vector2;
 }
 
-load :: (path: string) -> ok: bool, error_message: string, GLTF {
+load :: (path: string) -> ok: bool, error_message: string, Model {
+    model: Model;
+
     ok, error_message, gltf := parse_gltf_file(path);
     if !ok {
-        return false, error_message, gltf;
+        return false, error_message, {};
     }
+    defer release_gltf_file(*gltf);
+
+    // Sanity checks
     if gltf.scenes.count != 1 {
-        return false, sprint("Multi-scene gltf files arne not supported, % has % scenes", path, gltf.scenes.count), gltf;
+        return false, sprint("Multi-scene gltf files arne not supported, % has % scenes", path, gltf.scenes.count), {};
+    }
+    if gltf.scene == -1 {
+        return false, sprint("No scene in %", path), {};
     }
 
     root_directory := path_strip_filename(path);
 
     ok =, error_message =, buffers := load_buffers(root_directory, gltf.buffers);
     if !ok {
-        return false, error_message, gltf;
+        return false, error_message, {};
     }
     defer release_buffers(buffers);
 
@@ -45,14 +47,25 @@ load :: (path: string) -> ok: bool, error_message: string, GLTF {
     for node_index: scene.nodes {
         node := gltf.nodes[node_index];
 
-        mesh := gltf.meshes[node.mesh];
+        if node.mesh != -1 {
+            mesh := gltf.meshes[node.mesh]; // Maybe parse_mesh();
+        }
     }
 
-    return true, "", gltf;
+    // @Incomplete
+
+    return true, "", model;
 }
 
-release :: (gltf_file: *GLTF) {
-    release_gltf_file(gltf_file);
+release :: (model: *Model) {
+    for mesh: model.meshes {
+        array_free(mesh.vertices);
+        array_free(mesh.indices);
+    }
+
+    array_free(model.meshes);
+
+    model.* = {};
 }
 
 

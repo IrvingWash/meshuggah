@@ -191,7 +191,7 @@ create_config :: (arguments: []string) -> ok: bool, Config {
 
     if unknown_flags.count > 0 {
         log_error("Encountered unknown command line flags: %", join(..unknown_flags, separator = ", "));
-        return false, config;
+        return false, {};
     }
 
     ok, plugins_to_create := parse_plugin_arguments(arguments);
