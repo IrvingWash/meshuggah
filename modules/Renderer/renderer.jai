@@ -25,7 +25,10 @@ deinit :: () {
     destroy_shader(*renderer.shader);
 }
 
-begin_frame :: () {
+begin_frame :: (camera: $T/interface Render_Camera) {
+    renderer.transforms.perspective_projection = make_perspective_projection_transform_from_camera(camera);
+    renderer.transforms.view = make_view_transform_from_camera(camera);
+
     begin_backbuffer_pass(clear = true);
 }
 
@@ -35,6 +38,8 @@ draw :: (model: Model, model_transform: Matrix4) {
     use_shader(renderer.shader);
 
     set_uniform(renderer.shader, "uModelTransform", model_transform);
+    set_uniform(renderer.shader, "uProjectionTransform", renderer.transforms.perspective_projection);
+    set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
 
     glBindVertexArray(model.mesh.vao);
 
@@ -57,9 +62,26 @@ Renderer :: struct {
     shader: Shader;
 
     get_framebuffer_size: () -> (u32, u32);
+
+    transforms: struct {
+        perspective_projection: Matrix4;
+        view:                   Matrix4;
+    }
 }
 
 renderer: Renderer;
+
+Render_Camera :: struct {
+    position: Vector3;
+
+    front:    Vector3;
+    up:       Vector3;
+
+    fov: float;
+
+    far:  float;
+    near: float;
+}
 
 begin_backbuffer_pass :: (clear: bool) {
     using gl;
@@ -76,3 +98,25 @@ begin_backbuffer_pass :: (clear: bool) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 }
+
+make_perspective_projection_transform_from_camera :: (camera: $T/interface Render_Camera) -> Matrix4 {
+    width, height := renderer.get_framebuffer_size(); // @Todo this will eventually be get_render_target_size, right?
+
+    return make_projection_matrix(
+        camera.fov,
+        cast(float, width) / cast(float, height),
+        camera.near,
+        camera.far,
+    );
+}
+
+make_view_transform_from_camera :: (camera: $T/interface Render_Camera) -> Matrix4 {
+    return make_look_at_matrix(
+        camera.position,
+        camera.position + camera.front,
+        camera.up,
+        false,
+    );
+}
+
+#import "Math";
