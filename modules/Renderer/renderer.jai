@@ -29,7 +29,7 @@ begin_frame :: () {
     begin_backbuffer_pass(clear = true);
 }
 
-draw :: () {}
+draw :: (model: Model) {}
 
 end_frame :: () {}
 
@@ -61,5 +61,3 @@ begin_backbuffer_pass :: (clear: bool) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 }
-
-#load "shader.jai";

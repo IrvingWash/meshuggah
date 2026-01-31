@@ -31,7 +31,7 @@ main :: () {
         Window.poll_events();
 
         Renderer.begin_frame();
-        Renderer.draw();
+        // Renderer.draw();
         Renderer.end_frame();
 
         Window.swap_buffers();
