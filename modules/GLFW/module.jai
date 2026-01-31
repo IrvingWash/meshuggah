@@ -253,6 +253,38 @@ set_cursor_position :: (
     y: float64
 ) #foreign GLFW "glfwSetCursorPos";
 
+set_window_monitor :: inline (
+    window: *Window,
+    monitor: *Monitor,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+    refresh_rate: s32 = -1,
+) {
+    glfwSetWindowMonitor(
+        window,
+        monitor,
+        cast(s32, x),
+        cast(s32, y),
+        cast(s32, width),
+        cast(s32, height),
+        cast(s32, refresh_rate),
+    );
+}
+
+set_window_size :: inline (
+    window: *Window,
+    width: u32,
+    height: u32,
+) {
+    glfwSetWindowSize(
+        window,
+        cast(s32, width),
+        cast(s32, height),
+    );
+}
+
 
 
 #scope_module
@@ -289,6 +321,22 @@ glfwSetInputMode :: (window: *Window, mode: s32, value: s32) #foreign GLFW;
 glfwGetCursorPos :: (window: *Window, x: *float64, y: *float64) #foreign GLFW;
 
 glfwGetVideoMode :: (monitor: *Monitor) -> *GLFWvidmode #foreign GLFW;
+
+glfwSetWindowMonitor :: (
+    window: *Window,
+    monitor: *Monitor,
+    x: s32,
+    y: s32,
+    width: s32,
+    height: s32,
+    refresh_rate: s32,
+) #foreign GLFW;
+
+glfwSetWindowSize :: (
+    window: *Window,
+    width: s32,
+    height: s32,
+) #foreign GLFW;
 
 #if OS == {
     case .MACOS;
