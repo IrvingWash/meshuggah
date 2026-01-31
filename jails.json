@@ -1,6 +1,7 @@
 {
     "roots": [
         "src/main.jai",
+        "modules/GLTF/module.jai",
         "build.jai"
     ],
     "build_root": "build.jai",
