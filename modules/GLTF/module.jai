@@ -48,8 +48,8 @@ GLTF_Accessor :: struct {
     buffer_view: u32; @JsonName(bufferView)
     component_type: u32; @JsonName(componentType)
     count: u32;
-    max: [..]s32;
-    min: [..]s32;
+    max: [..]float;
+    min: [..]float;
     type: string;
 }
 
@@ -70,12 +70,12 @@ load :: (path: string) -> ok: bool, error_message: string, GLTF {
 
     data, ok := read_entire_file(path,, temp);
     if !ok {
-        return false, sprint(ok, "Failed to read GLTF file from %", path), gltf;
+        return false, sprint("Failed to read GLTF file from %", path), gltf;
     }
 
     ok, gltf = json_parse_string(data, GLTF);
     if !ok {
-        return false, assert(ok, "Failed to parse GLTF file from %", path), gltf;
+        return false, sprint("Failed to parse GLTF file from %", path), gltf;
     }
 
     if gltf.asset.version != SUPPORTED_GLTF_VERSION {
