@@ -24,8 +24,8 @@ Vertex :: struct {
 
 Vertex_Attribute_Offsets  :: struct {
     POSITION :: #run offset_of(Vertex, "position");
-    NORMAL :: #run offset_of(Vertex, "normal");
-    UV :: #run offset_of(Vertex, "uv");
+    NORMAL   :: #run offset_of(Vertex, "normal");
+    UV       :: #run offset_of(Vertex, "uv");
 }
 
 create_model :: (vertices: []Vertex, indices: []u32) -> Model {

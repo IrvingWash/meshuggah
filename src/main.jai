@@ -8,6 +8,7 @@
 );
 #import "Math";
 
+Engine :: #import "Engine";
 Window :: #import "Window";
 Renderer :: #import "Renderer"()(DEBUG = DEBUG);
 GLTF :: #import "GLTF";
@@ -46,6 +47,9 @@ main :: () {
 
     Renderer.init(Window.get_framebuffer_size);
     defer Renderer.deinit();
+
+    Engine.init_asset_storage();
+    defer Engine.deinit_asset_storage();
 
     triangle := Renderer.create_model(TRIANGLE_VERTICES, TRIANGLE_INDICES);
     defer Renderer.destroy_model(*triangle);

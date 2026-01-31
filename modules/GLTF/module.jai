@@ -65,24 +65,33 @@ GLTF_Buffer :: struct {
     uri: string;
 }
 
-load :: (path: string) -> GLTF {
+load :: (path: string) -> ok: bool, error_message: string, GLTF {
+    gltf: GLTF;
+
     data, ok := read_entire_file(path,, temp);
-    assert(ok, "Failed to read GLTF file from %", path);
+    if !ok {
+        return false, sprint(ok, "Failed to read GLTF file from %", path), gltf;
+    }
 
-    ok =, gltf := json_parse_string(data, GLTF);
-    assert(ok, "Failed to parse GLTF file from %", path);
+    ok, gltf = json_parse_string(data, GLTF);
+    if !ok {
+        return false, assert(ok, "Failed to parse GLTF file from %", path), gltf;
+    }
 
-    assert(
-        gltf.asset.version == SUPPORTED_GLTF_VERSION,
-        "Only GLTF version % is supported, but tried to laod version %",
-        SUPPORTED_GLTF_VERSION,
-        gltf.asset.version,
-    );
+    if gltf.asset.version != SUPPORTED_GLTF_VERSION {
+        error_message := sprint(
+            "Only GLTF version % is supported, but tried to laod version %",
+            SUPPORTED_GLTF_VERSION,
+            gltf.asset.version,
+        );
 
-    return gltf;
+        return false, error_message, gltf;
+    }
+
+    return true, "", gltf;
 }
 
-release :: (gltf: GLTF) {
+release :: (gltf: *GLTF) {
     free(gltf.asset.generator);
     free(gltf.asset.version);
 
@@ -117,6 +126,8 @@ release :: (gltf: GLTF) {
         free(buffer.uri);
     }
     array_free(gltf.buffers);
+
+    gltf.* = {};
 }
 
 
