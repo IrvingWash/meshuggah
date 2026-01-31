@@ -1,3 +1,5 @@
+DONT_CARE: s32 : -1;
+
 #if OS == .WINDOWS {
     #load "windows.jai";
 }
@@ -8,6 +10,7 @@ Cursor_Position_Proc  :: #type (window: *Window, x: float64, y: float64) #c_call
 Scroll_Proc           :: #type (window: *Window, x_offset: float64, y_offset: float64) #c_call;
 Key_Proc              :: #type (window: *Window, key: Key, scan_code: s32, action: Key_State, mods: s32) #c_call;
 Window_Size_Proc      :: #type (window: *Window, width: s32, height: s32) #c_call;
+Window_Position_Proc  :: #type (window: *Window, x: s32, y: s32) #c_call;
 
 Window  :: struct {};
 Monitor :: struct {};
@@ -15,7 +18,8 @@ Monitor :: struct {};
 Video_Mode :: struct {
     width:  u32;
     height: u32;
-    refresh_rate: u32;
+
+    refresh_rate: s32;
 };
 
 Window_Hint :: enum #specified {
@@ -151,8 +155,15 @@ get_video_mode :: inline (monitor: *Monitor) -> Video_Mode {
     return {
         width  = xx video_mode.width,
         height = xx video_mode.height,
-        refresh_rate = xx video_mode.refresh_rate,
+        refresh_rate = video_mode.refresh_rate,
     };
+}
+
+get_window_position :: (window: *Window) -> x: s32, y: s32 {
+    x, y: s32;
+    glfwGetWindowPos(window, *x, *y);
+
+    return x, y;
 }
 
 create_window :: inline (
@@ -199,7 +210,7 @@ make_context_current :: (
 
 get_proc_address :: (
     procedure_name: *u8
-) -> *void #foreign "glfwGetProcAddress";
+) -> *void #foreign GLFW "glfwGetProcAddress";
 
 set_framebuffer_size_callback :: (
     window: *Window,
@@ -241,6 +252,11 @@ set_window_size_callback :: (
     callback: Window_Size_Proc,
 ) #foreign GLFW "glfwSetWindowSizeCallback";
 
+set_window_position_callback :: (
+    window: *Window,
+    callback: Window_Position_Proc,
+) #foreign GLFW "glfwSetWindowPosCallback";
+
 get_cursor_position :: (window: *Window) -> float, float {
     x, y: float64;
 
@@ -272,8 +288,8 @@ set_cursor_position :: (
 set_window_monitor :: inline (
     window: *Window,
     monitor: *Monitor,
-    x: u32,
-    y: u32,
+    x: s32,
+    y: s32,
     width: u32,
     height: u32,
     refresh_rate: s32,
@@ -281,11 +297,11 @@ set_window_monitor :: inline (
     glfwSetWindowMonitor(
         window,
         monitor,
-        cast(s32, x),
-        cast(s32, y),
+        x,
+        y,
         cast(s32, width),
         cast(s32, height),
-        cast(s32, refresh_rate),
+        refresh_rate,
     );
 }
 
@@ -361,6 +377,8 @@ glfwGetFramebufferSize :: (
 ) #foreign GLFW "glfwGetFramebufferSize";
 
 glfwGetWindowSize :: (window: *Window, width: *s32, height: *s32) #foreign GLFW;
+
+glfwGetWindowPos :: (window: *Window, x: *s32, y: *s32) #foreign GLFW;
 
 #if OS == {
     case .MACOS;

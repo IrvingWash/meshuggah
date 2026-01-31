@@ -2,10 +2,11 @@ Key :: GLFW.Key;
 Key_State :: GLFW.Key_State;
 
 Framebuffer_Size_Change_Handler :: #type (width: u32, height: u32);
-Scroll_Handler :: #type (x_offset: float, y_offset: float);
-Cursor_Position_Change_Handler :: #type (x: float, y: float);
-Key_Handler :: #type (key: Key, state: Key_State);
-Window_Size_Change_Handler :: #type (width: u32, height: u32);
+Scroll_Handler                  :: #type (x_offset: float, y_offset: float);
+Cursor_Position_Change_Handler  :: #type (x: float, y: float);
+Key_Handler                     :: #type (key: Key, state: Key_State);
+Window_Size_Change_Handler      :: #type (width: u32, height: u32);
+Window_Position_Change_Handler  :: #type(x: s32, y: s32);
 
 create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
     GLFW.set_error_callback(handle_glfw_error);
@@ -61,10 +62,13 @@ create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
             window_data.window,
             handle_key,
         );
-
         GLFW.set_window_size_callback(
             window_data.window,
             handle_window_size_change,
+        );
+        GLFW.set_window_position_callback(
+            window_data.window,
+            handle_window_position_change,
         );
     }
 
@@ -79,6 +83,10 @@ create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
         window_data.logical_width = logical_width;
         window_data.logical_height = logical_height;
 
+        x_position, y_position := GLFW.get_window_position(window_data.window);
+        window_data.x_position = x_position;
+        window_data.y_position = y_position;
+
         window_data.monitor = GLFW.get_primary_monitor();
         assert(window_data.monitor != null, "Failed to get access to the monitor");
 
@@ -88,6 +96,8 @@ create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
     { // OpenGL initialization
         gl_load(*gl, GLFW.get_proc_address);
     }
+
+    GLFW.focus_window(window_data.window);
 }
 
 destroy_window :: () {
@@ -101,6 +111,7 @@ destroy_window :: () {
     array_free(window_data.cursor_position_change_handlers);
     array_free(window_data.key_handlers);
     array_free(window_data.window_size_change_handlers);
+    array_free(window_data.window_position_change_handlers);
 }
 
 should_window_close :: inline () -> bool {
@@ -116,17 +127,34 @@ swap_buffers :: inline () {
 }
 
 toggle_fullscreen :: () {
-    if window_data.is_fullscreen {
+    if window_data.is_fullscreen { // Windowed
         GLFW.set_window_monitor(
             window_data.window,
             null,
-            0,
-            0,
-            window_data.logical_width,
-            window_data.logical_height,
-            window_data.video_mode.refresh_rate,
+            window_data.windowed_cache.x_position,
+            window_data.windowed_cache.y_position,
+            window_data.windowed_cache.logical_width,
+            window_data.windowed_cache.logical_height,
+            GLFW.DONT_CARE,
         );
-    } else {
+
+        GLFW.focus_window(window_data.window);
+    } else { // Fullscreen
+        // Update video mode just in case
+        window_data.video_mode = GLFW.get_video_mode(window_data.monitor);
+
+        { // Cache windowed state
+            x, y := GLFW.get_window_position(window_data.window);
+            logical_width, logical_height := GLFW.get_window_size(window_data.window);
+
+            window_data.windowed_cache = {
+                x_position = x,
+                y_position = y,
+                logical_width = logical_width,
+                logical_height = logical_height,
+            };
+        }
+
         GLFW.set_window_monitor(
             window_data.window,
             window_data.monitor,
@@ -136,6 +164,8 @@ toggle_fullscreen :: () {
             window_data.video_mode.height,
             window_data.video_mode.refresh_rate,
         );
+
+        GLFW.focus_window(window_data.window);
     }
 
     window_data.is_fullscreen = !window_data.is_fullscreen;
@@ -149,10 +179,6 @@ toggle_vsync :: () {
     }
 
     window_data.is_vsync_enabled = !window_data.is_vsync_enabled;
-}
-
-set_window_size :: inline (width: u32, height: u32) {
-    GLFW.set_window_size(window_data.window, width, height);
 }
 
 add_framebuffer_size_change_handler :: (
@@ -194,6 +220,15 @@ add_window_size_change_handler :: (
     );
 }
 
+add_window_position_change_handler :: (
+    handler: Window_Position_Change_Handler,
+) {
+    array_add(
+        *window_data.window_position_change_handlers,
+        handler,
+    );
+}
+
 
 
 #scope_file
@@ -209,6 +244,9 @@ Window_Data :: struct {
     logical_width: u32;
     logical_height: u32;
 
+    x_position: s32;
+    y_position: s32;
+
     is_vsync_enabled: bool;
     is_fullscreen: bool;
 
@@ -217,6 +255,14 @@ Window_Data :: struct {
     cursor_position_change_handlers: [..]Cursor_Position_Change_Handler;
     key_handlers: [..]Key_Handler;
     window_size_change_handlers: [..]Window_Size_Change_Handler;
+    window_position_change_handlers: [..]Window_Position_Change_Handler;
+
+    windowed_cache: struct {
+        x_position: s32;
+        y_position: s32;
+        logical_width: u32;
+        logical_height: u32;
+    }
 }
 
 window_data: Window_Data;
@@ -297,6 +343,21 @@ handle_window_size_change: GLFW.Window_Size_Proc : (
     push_context {
         for proc: window_data.window_size_change_handlers {
             proc(cast(u32, width), cast(u32, height));
+        }
+    }
+}
+
+handle_window_position_change: GLFW.Window_Position_Proc : (
+    window: *GLFW.Window,
+    x: s32,
+    y: s32,
+) #c_call {
+    window_data.x_position = x;
+    window_data.y_position = y;
+
+    push_context {
+        for proc: window_data.window_position_change_handlers {
+            proc(x, y);
         }
     }
 }
