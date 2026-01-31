@@ -7,6 +7,7 @@ Framebuffer_Size_Proc :: #type (window: *Window, width: s32, height: s32) #c_cal
 Cursor_Position_Proc  :: #type (window: *Window, x: float64, y: float64) #c_call;
 Scroll_Proc           :: #type (window: *Window, x_offset: float64, y_offset: float64) #c_call;
 Key_Proc              :: #type (window: *Window, key: Key, scan_code: s32, action: Key_State, mods: s32) #c_call;
+Window_Size_Proc      :: #type (window: *Window, width: s32, height: s32) #c_call;
 
 Window  :: struct {};
 Monitor :: struct {};
@@ -235,6 +236,11 @@ set_key_callback :: (
     callback: Key_Proc
 ) #foreign GLFW "glfwSetKeyCallback";
 
+set_window_size_callback :: (
+    window: *Window,
+    callback: Window_Size_Proc,
+) #foreign GLFW "glfwSetWindowSizeCallback";
+
 get_cursor_position :: (window: *Window) -> float, float {
     x, y: float64;
 
@@ -243,11 +249,19 @@ get_cursor_position :: (window: *Window) -> float, float {
     return xx x, xx y;
 }
 
-get_framebuffer_size :: (
-    window: *Window,
-    width: *s32,
-    height: *s32
-) #foreign GLFW "glfwGetFramebufferSize";
+get_framebuffer_size :: (window: *Window) -> width: u32, height: u32 {
+    width, height: s32;
+    glfwGetFramebufferSize(window, *width, *height);
+
+    return cast(u32, width), cast(u32, height);
+}
+
+get_window_size :: (window: *Window) -> width: u32, height: u32 {
+    width, height: s32;
+    glfwGetWindowSize(window, *width, *height);
+
+    return cast(u32, width), cast(u32, height);
+}
 
 set_cursor_position :: (
     window: *Window,
@@ -339,6 +353,14 @@ glfwSetWindowSize :: (
     width: s32,
     height: s32,
 ) #foreign GLFW;
+
+glfwGetFramebufferSize :: (
+    window: *Window,
+    width: *s32,
+    height: *s32
+) #foreign GLFW "glfwGetFramebufferSize";
+
+glfwGetWindowSize :: (window: *Window, width: *s32, height: *s32) #foreign GLFW;
 
 #if OS == {
     case .MACOS;

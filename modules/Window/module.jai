@@ -5,6 +5,7 @@ Framebuffer_Size_Change_Handler :: #type (width: u32, height: u32);
 Scroll_Handler :: #type (x_offset: float, y_offset: float);
 Cursor_Position_Change_Handler :: #type (x: float, y: float);
 Key_Handler :: #type (key: Key, state: Key_State);
+Window_Size_Change_Handler :: #type (width: u32, height: u32);
 
 create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
     GLFW.set_error_callback(handle_glfw_error);
@@ -60,16 +61,23 @@ create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
             window_data.window,
             handle_key,
         );
+
+        GLFW.set_window_size_callback(
+            window_data.window,
+            handle_window_size_change,
+        );
     }
 
     { // Window data population
         window_data.is_vsync_enabled = vsync;
 
-        width, height: s32;
-        GLFW.get_framebuffer_size(window_data.window, *width, *height);
-        window_data.pixel_width = cast(u32, width);
-        window_data.pixel_height = cast(u32, height);
+        framebuffer_width, framebuffer_height := GLFW.get_framebuffer_size(window_data.window);
+        window_data.framebuffer_width = framebuffer_width;
+        window_data.framebuffer_height = framebuffer_height;
 
+        logical_width, logical_height := GLFW.get_window_size(window_data.window);
+        window_data.logical_width = logical_width;
+        window_data.logical_height = logical_height;
 
         window_data.monitor = GLFW.get_primary_monitor();
         assert(window_data.monitor != null, "Failed to get access to the monitor");
@@ -92,6 +100,7 @@ destroy_window :: () {
     array_free(window_data.scroll_handlers);
     array_free(window_data.cursor_position_change_handlers);
     array_free(window_data.key_handlers);
+    array_free(window_data.window_size_change_handlers);
 }
 
 should_window_close :: inline () -> bool {
@@ -113,8 +122,8 @@ toggle_fullscreen :: () {
             null,
             0,
             0,
-            window_data.pixel_width,
-            window_data.pixel_height,
+            window_data.logical_width,
+            window_data.logical_height,
             window_data.video_mode.refresh_rate,
         );
     } else {
@@ -123,8 +132,8 @@ toggle_fullscreen :: () {
             window_data.monitor,
             0,
             0,
-            window_data.pixel_width,
-            window_data.pixel_height,
+            window_data.video_mode.width,
+            window_data.video_mode.height,
             window_data.video_mode.refresh_rate,
         );
     }
@@ -176,6 +185,15 @@ add_key_handler :: (
     );
 }
 
+add_window_size_change_handler :: (
+    handler: Window_Size_Change_Handler,
+) {
+    array_add(
+        *window_data.window_size_change_handlers,
+        handler,
+    );
+}
+
 
 
 #scope_file
@@ -185,8 +203,11 @@ Window_Data :: struct {
     monitor: *GLFW.Monitor;
     video_mode: GLFW.Video_Mode;
 
-    pixel_width: u32;
-    pixel_height: u32;
+    framebuffer_width: u32;
+    framebuffer_height: u32;
+
+    logical_width: u32;
+    logical_height: u32;
 
     is_vsync_enabled: bool;
     is_fullscreen: bool;
@@ -195,6 +216,7 @@ Window_Data :: struct {
     scroll_handlers: [..]Scroll_Handler;
     cursor_position_change_handlers: [..]Cursor_Position_Change_Handler;
     key_handlers: [..]Key_Handler;
+    window_size_change_handlers: [..]Window_Size_Change_Handler;
 }
 
 window_data: Window_Data;
@@ -214,14 +236,14 @@ handle_framebuffer_size_change: GLFW.Framebuffer_Size_Proc : (
     width: s32,
     height: s32,
 ) #c_call {
-    window_data.pixel_width = cast(u32, width);
-    window_data.pixel_height = cast(u32, height);
+    window_data.framebuffer_width = cast(u32, width);
+    window_data.framebuffer_height = cast(u32, height);
 
     gl.glViewport(0, 0, cast(u32, width), cast(u32, height));
 
     push_context {
         for proc: window_data.framebuffer_size_change_handlers {
-            proc(window_data.pixel_width, window_data.pixel_height);
+            proc(window_data.framebuffer_width, window_data.framebuffer_height);
         }
     }
 }
@@ -260,6 +282,21 @@ handle_key: GLFW.Key_Proc : (
     push_context {
         for proc: window_data.key_handlers {
             proc(key, action);
+        }
+    }
+}
+
+handle_window_size_change: GLFW.Window_Size_Proc : (
+    window: *GLFW.Window,
+    width: s32,
+    height: s32,
+) #c_call {
+    window_data.logical_width = cast(u32, width);
+    window_data.logical_height = cast(u32, height);
+
+    push_context {
+        for proc: window_data.window_size_change_handlers {
+            proc(cast(u32, width), cast(u32, height));
         }
     }
 }
