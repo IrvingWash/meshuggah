@@ -24,7 +24,7 @@ Vertex_Attribute_Offsets  :: struct {
 
 Mesh_Data :: struct {
     vertices: []Vertex;
-    indices:  []u32;
+    indices:  []u16;
 }
 
 create_model :: (mesh_data: []$T/interface Mesh_Data) -> Model {
@@ -53,7 +53,7 @@ destroy_model :: (model: *Model) {
 
 #scope_file
 
-create_mesh :: (vertices: []$T/interface Vertex, indices: []u32) -> Mesh {
+create_mesh :: (vertices: []$T/interface Vertex, indices: []u16) -> Mesh {
     mesh: Mesh;
 
     mesh.index_count = cast(u32, indices.count);
@@ -69,7 +69,7 @@ create_mesh :: (vertices: []$T/interface Vertex, indices: []u32) -> Mesh {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        indices.count * size_of(u32),
+        indices.count * size_of(u16),
         indices.data,
         GL_STATIC_DRAW,
     );
