@@ -39,7 +39,7 @@ use_shader :: inline (shader: Shader) {
     glUseProgram(shader.id);
 }
 
-set_uniform :: (shader: *Shader, name: string, value: $T)
+set_uniform :: (shader: Shader, name: string, value: $T)
 #modify {
     return T == s32
         || T == float

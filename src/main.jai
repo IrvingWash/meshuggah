@@ -9,7 +9,7 @@
 #import "Math";
 
 Window :: #import "Window";
-Renderer :: #import "Renderer";
+Renderer :: #import "Renderer"()(DEBUG = DEBUG);
 GLTF :: #import "GLTF";
 
 TRIANGLE_INDICES :: u32.[

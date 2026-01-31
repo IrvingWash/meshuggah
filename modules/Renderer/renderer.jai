@@ -34,6 +34,8 @@ draw :: (model: Model, model_transform: Matrix4) {
 
     use_shader(renderer.shader);
 
+    set_uniform(renderer.shader, "uModelTransform", model_transform);
+
     glBindVertexArray(model.mesh.vao);
 
     glDrawElements(
