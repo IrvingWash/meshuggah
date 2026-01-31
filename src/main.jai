@@ -21,7 +21,7 @@ main :: () {
     Window.create_window("Meshuggah", 800, 600, vsync = true);
     defer Window.destroy_window();
 
-    Renderer.init();
+    Renderer.init(Window.get_framebuffer_size);
     defer Renderer.deinit();
 
     model := GLTF.load("assets/models/cube.gltf");
@@ -30,9 +30,9 @@ main :: () {
     while !Window.should_window_close() {
         Window.poll_events();
 
-        Renderer.start_drawing();
+        Renderer.begin_frame();
         Renderer.draw();
-        Renderer.finish_drawing();
+        Renderer.end_frame();
 
         Window.swap_buffers();
 

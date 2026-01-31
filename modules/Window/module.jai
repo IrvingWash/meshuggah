@@ -94,6 +94,7 @@ create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
     }
 
     { // OpenGL initialization
+        #import "GL";
         gl_load(*gl, GLFW.get_proc_address);
     }
 
@@ -229,6 +230,10 @@ add_window_position_change_handler :: (
     );
 }
 
+get_framebuffer_size :: () -> u32, u32 {
+    return window_data.framebuffer_width, window_data.framebuffer_height;
+}
+
 
 
 #scope_file
@@ -284,8 +289,6 @@ handle_framebuffer_size_change: GLFW.Framebuffer_Size_Proc : (
 ) #c_call {
     window_data.framebuffer_width = cast(u32, width);
     window_data.framebuffer_height = cast(u32, height);
-
-    gl.glViewport(0, 0, cast(u32, width), cast(u32, height));
 
     push_context {
         for proc: window_data.framebuffer_size_change_handlers {
@@ -363,5 +366,4 @@ handle_window_position_change: GLFW.Window_Position_Proc : (
 }
 
 #import "Basic";
-#import "GL";
 GLFW :: #import "GLFW";
