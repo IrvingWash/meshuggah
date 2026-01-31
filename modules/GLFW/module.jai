@@ -14,6 +14,7 @@ Monitor :: struct {};
 Video_Mode :: struct {
     width:  u32;
     height: u32;
+    refresh_rate: u32;
 };
 
 Window_Hint :: enum #specified {
@@ -149,6 +150,7 @@ get_video_mode :: inline (monitor: *Monitor) -> Video_Mode {
     return {
         width  = xx video_mode.width,
         height = xx video_mode.height,
+        refresh_rate = xx video_mode.refresh_rate,
     };
 }
 
@@ -260,7 +262,7 @@ set_window_monitor :: inline (
     y: u32,
     width: u32,
     height: u32,
-    refresh_rate: s32 = -1,
+    refresh_rate: s32,
 ) {
     glfwSetWindowMonitor(
         window,

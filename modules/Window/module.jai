@@ -115,6 +115,7 @@ toggle_fullscreen :: () {
             0,
             window_data.pixel_width,
             window_data.pixel_height,
+            window_data.video_mode.refresh_rate,
         );
     } else {
         GLFW.set_window_monitor(
@@ -124,6 +125,7 @@ toggle_fullscreen :: () {
             0,
             window_data.pixel_width,
             window_data.pixel_height,
+            window_data.video_mode.refresh_rate,
         );
     }
 
