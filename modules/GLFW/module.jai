@@ -29,7 +29,9 @@ Window_Hint :: enum #specified {
     OPENGL_FORWARD_COMPATIBILITY :: 0x00022006;
     SRGB_CAPABLE                 :: 0x0002100E;
     CLIENT_API                   :: 0x00022001;
-}
+    DEPTH_BITS                   :: 0x00021005;
+    STENCIL_BITS                 :: 0x00021006;
+};
 
 OpenGL_Profile :: enum #specified {
     CORE :: 0x00032001;

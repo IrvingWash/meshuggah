@@ -24,6 +24,8 @@ create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
     GLFW.set_window_hint(.CONTEXT_VERSION_MINOR, 3);
     GLFW.set_window_hint(.OPENGL_PROFILE, .CORE);
     GLFW.set_window_hint(.SRGB_CAPABLE, true);
+    GLFW.set_window_hint(.DEPTH_BITS, 24);
+    GLFW.set_window_hint(.STENCIL_BITS, 8);
     #if OS == .MACOS {
         GLFW.set_window_hint(.OPENGL_FORWARD_COMPATIBILITY, true);
     }
