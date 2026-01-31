@@ -22,6 +22,12 @@ Vertex :: struct {
     uv:       Vector2;
 }
 
+Vertex_Attribute_Offsets  :: struct {
+    POSITION :: #run offset_of(Vertex, "position");
+    NORMAL :: #run offset_of(Vertex, "normal");
+    UV :: #run offset_of(Vertex, "uv");
+}
+
 create_model :: (vertices: []Vertex, indices: []u32) -> Model {
     model: Model;
 
@@ -77,7 +83,7 @@ create_mesh :: (vertices: []Vertex, indices: []u32) -> Mesh {
         GL_FLOAT,
         GL_FALSE,
         size_of(Vertex),
-        cast(*void, offset_of(Vertex, "position")),
+        cast(*void, Vertex_Attribute_Offsets.POSITION),
     );
 
     // Normal
@@ -88,7 +94,7 @@ create_mesh :: (vertices: []Vertex, indices: []u32) -> Mesh {
         GL_FLOAT,
         GL_FALSE,
         size_of(Vertex),
-        cast(*void, offset_of(Vertex, "normal")),
+        cast(*void, Vertex_Attribute_Offsets.NORMAL),
     );
 
     // UV
@@ -99,11 +105,10 @@ create_mesh :: (vertices: []Vertex, indices: []u32) -> Mesh {
         GL_FLOAT,
         GL_FALSE,
         size_of(Vertex),
-        cast(*void, offset_of(Vertex, "uv")),
+        cast(*void, Vertex_Attribute_Offsets.UV),
     );
 
     glBindVertexArray(0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return mesh;
