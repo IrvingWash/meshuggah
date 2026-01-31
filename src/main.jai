@@ -9,7 +9,6 @@
 #import "Math";
 
 Engine :: #import "Engine"()(DEBUG = DEBUG);
-Window :: #import "Window";
 Renderer :: #import "Renderer"()(DEBUG = DEBUG);
 
 main :: () {
@@ -19,14 +18,8 @@ main :: () {
 
     setup_formatting();
 
-    Window.create_window("Meshuggah", 800, 600, vsync = true);
-    defer Window.destroy_window();
-
-    Renderer.init(Window.get_framebuffer_size);
-    defer Renderer.deinit();
-
-    Engine.init_asset_storage();
-    defer Engine.deinit_asset_storage();
+    Engine.init("Meshuggah", 800, 600, vsync = true);
+    defer Engine.deinit();
 
     mech_handle := Engine.get_model("./assets/models/mech/mech.gltf");
 
@@ -43,10 +36,10 @@ main :: () {
 
     rotation: float = 0;
 
-    while !Window.should_window_close() {
-        Window.poll_events();
+    while !Engine.is_quit_requested() {
+        Engine.begin_frame();
 
-        rotation += 0.001;
+        rotation += deg_to_rad(10) * Engine.get_delta_time();
         translation_transform := make_translation_matrix4({});
         scale_transform := make_scale_matrix4({ 1, 1, 1 });
         orientation: Quaternion;
@@ -59,7 +52,7 @@ main :: () {
         Renderer.draw(Engine.resolve_model_handle(mech_handle), model_transform);
         Renderer.end_frame();
 
-        Window.swap_buffers();
+        Engine.end_frame();
 
         #if DEBUG {
             memory_visualizer_per_frame_update();
