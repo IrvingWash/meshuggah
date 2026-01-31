@@ -13,9 +13,7 @@ get_model :: (path: string) -> Asset_Handle {
     ok, handle := table_find(asset_storage.model_storage.map, absolute_path);
     if !ok {
         ok =, error_message, model_data := GLTF.load(absolute_path);
-        if !ok {
-            assert(false, error_message);
-        }
+        assert(ok, error_message);
         defer GLTF.release(model_data);
 
         model := Renderer.create_model(model_data);

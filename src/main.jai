@@ -51,7 +51,8 @@ main :: () {
     Engine.init_asset_storage();
     defer Engine.deinit_asset_storage();
 
-    _, _, gltf_triangle := GLTF.load("assets/models/triangle/triangle.gltf");
+    ok, message, gltf_triangle := GLTF.load("assets/models/triangle/triangle.gltf");
+    assert(ok, message);
     defer GLTF.release(*gltf_triangle);
 
     triangle := Renderer.create_model(TRIANGLE_VERTICES, TRIANGLE_INDICES);

@@ -2,12 +2,43 @@
 #import "File";
 #import "jaison";
 
+Mesh_Data :: struct {
+    transform: Transform;
+
+    vertices: [..]Vertex;
+    indices:  [..]u32;
+
+    index_count: u32;
+}
+
+Transform :: struct {
+    position: Vector3;
+    scale:    Vector3;
+    rotation: Quaternion;
+}
+
+Vertex :: struct {
+    position: Vector3;
+    scale:    Vector3;
+    rotation: Vector3;
+}
+
 load :: (path: string) -> ok: bool, error_message: string, GLTF {
     ok, error_message, gltf := parse_gltf_file(path);
-
+    if !ok {
+        return false, error_message, gltf;
+    }
     if gltf.scenes.count != 1 {
         return false, sprint("Multi-scene gltf files arne not supported, % has % scenes", path, gltf.scenes.count), gltf;
     }
+
+    root_directory := path_strip_filename(path);
+
+    ok =, error_message =, buffers := load_buffers(root_directory, gltf.buffers);
+    if !ok {
+        return false, error_message, gltf;
+    }
+    defer release_buffers(buffers);
 
     scene := gltf.scenes[gltf.scene];
 
@@ -15,11 +46,9 @@ load :: (path: string) -> ok: bool, error_message: string, GLTF {
         node := gltf.nodes[node_index];
 
         mesh := gltf.meshes[node.mesh];
-
-        print("%\n", mesh);
     }
 
-    return ok, error_message, gltf;
+    return true, "", gltf;
 }
 
 release :: (gltf_file: *GLTF) {
@@ -30,7 +59,42 @@ release :: (gltf_file: *GLTF) {
 
 #scope_file
 
+// The returned array of buffers is indexed in respect of the incoming gltf_buffers
+load_buffers :: (root_directory: string, gltf_buffers: []GLTF_Buffer) -> ok: bool, error_message: string, buffers: [..][]u8 {
+    loaded_buffers: [..][]u8;
+    array_resize(*loaded_buffers, gltf_buffers.count);
+
+    for gltf_buffer: gltf_buffers {
+        buffer_path := path_join(root_directory, gltf_buffer.uri,, temp);
+        data, ok := read_entire_file(buffer_path);
+        if !ok {
+            release_buffers(loaded_buffers);
+            return false, sprint("Failed to load buffer from %", buffer_path), loaded_buffers;
+        }
+
+        bytes: []u8 = cast([]u8, data);
+        if bytes.count < gltf_buffer.byte_length {
+            release_buffers(loaded_buffers);
+            return false, sprint("Buffer file contains less bytes (%) than it's specified in metadata (%)", bytes.count, gltf_buffer.byte_length), loaded_buffers;
+        }
+
+        loaded_buffers[it_index] = bytes;
+    }
+
+    return true, "", loaded_buffers;
+}
+
+release_buffers :: (buffers: [..][]u8) {
+    for buffer: buffers {
+        array_free(buffer);
+    }
+
+    array_free(buffers);
+}
+
 #import "Basic";
 #import "Math";
+#import "String";
+#import "Hash_Table";
 
 #load "gltf_parser.jai";

@@ -22,8 +22,9 @@ GLTF_Scene :: struct {
 }
 
 GLTF_Node :: struct {
-    mesh: u32;
     name: string;
+    mesh: u32;
+    rotation: [4]float;
 }
 
 GLTF_Mesh :: struct {
@@ -44,6 +45,7 @@ GLTF_Attributes :: struct {
 
 GLTF_Accessor :: struct {
     buffer_view: u32; @JsonName(bufferView)
+    byte_offset: u32; @JsonName(byte_offset)
     component_type: u32; @JsonName(componentType)
     count: u32;
     max: [..]float;
