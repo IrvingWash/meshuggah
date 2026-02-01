@@ -64,21 +64,35 @@ load :: (path: string) -> ok: bool, error_message: string, Model {
     scene := gltf.scenes[gltf.scene];
 
     for node_index: scene.nodes {
-        node := gltf.nodes[node_index];
-
-        if node.mesh != -1 {
-            mesh := gltf.meshes[node.mesh];
-
-            for primitive: mesh.primitives {
-                array_add(
-                    *model.meshes,
-                    parse_primitive(gltf, primitive, buffers, root_directory),
-                );
-            }
-        }
+        parse_node(gltf, node_index, *model, buffers, root_directory);
     }
 
     return true, "", model;
+}
+
+parse_node :: (
+    gltf: GLTF,
+    node_index: int,
+    model: *Model,
+    buffers: [][]u8,
+    root_directory: string,
+) {
+    node := gltf.nodes[node_index];
+
+    if node.mesh != -1 {
+        mesh := gltf.meshes[node.mesh];
+
+        for primitive: mesh.primitives {
+            array_add(
+                *model.meshes,
+                parse_primitive(gltf, primitive, buffers, root_directory),
+            );
+        }
+    }
+
+    for child: node.children {
+        parse_node(gltf, child, model, buffers, root_directory);
+    }
 }
 
 release :: (model: *Model) {

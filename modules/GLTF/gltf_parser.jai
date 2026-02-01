@@ -44,9 +44,9 @@ GLTF_Scene :: struct {
 
 GLTF_Node :: struct {
     name: string;
-
     mesh:   int = -1;
     camera: int = -1;
+    children: [..]u32;
 }
 
 GLTF_Material :: struct {
@@ -169,6 +169,7 @@ release_gltf_file :: (gltf: *GLTF) {
 
     for node: gltf.nodes {
         free(node.name);
+        array_free(node.children);
     }
     array_free(gltf.nodes);
 
