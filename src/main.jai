@@ -14,6 +14,7 @@ _ :: #import "Renderer"()(DEBUG = DEBUG); // @Sucks: rendering only to pass the 
 #load "fly_camera.jai";
 #load "entity.jai";
 #load "cube.jai";
+#load "mech.jai";
 
 main :: () {
     #if DEBUG {
@@ -28,7 +29,7 @@ main :: () {
     fly_camera := create_fly_camera();
 
     cube: Cube;
-    cube.model = Engine.get_model("assets/models/cube/cube.gltf");
+    mech: Mech;
 
     while !Engine.is_quit_requested() {
         Engine.begin_frame();
@@ -37,8 +38,12 @@ main :: () {
 
         Engine.begin_drawing_frame(fly_camera);
         Engine.draw(
-            Engine.resolve_model_handle(cube.model),
+            Engine.get_model_from_storage(cube.model),
             get_entity_transform(cube),
+        );
+        Engine.draw(
+            Engine.get_model_from_storage(mech.model),
+            get_entity_transform(mech),
         );
         Engine.end_drawing_frame();
 

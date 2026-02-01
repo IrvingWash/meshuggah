@@ -7,7 +7,7 @@ Entity :: struct {
     scale:    Vector3 = { 1, 1, 1 };
     orientation: Quaternion;
 
-    model: Engine.Asset_Handle;
+    model: string;
 
     flags: Entity_Flags;
 }
