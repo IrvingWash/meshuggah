@@ -50,7 +50,7 @@ draw :: (model: Model, model_transform: Matrix4) {
         glBindVertexArray(mesh.vao);
 
         set_uniform(renderer.shader, "uTint", mesh.material.tint);
-        set_uniform(renderer.shader, "uBaseColor", cast(s32, 0));
+        set_uniform(renderer.shader, "uMaterial.baseColor", cast(s32, 0));
 
         if mesh.material.texture.id != 0 {
             bind_texture(mesh.material.texture);
