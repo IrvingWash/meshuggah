@@ -16,6 +16,7 @@ _ :: #import "Renderer"()(DEBUG = DEBUG); // @Sucks: rendering only to pass the 
 #load "fairy.jai";
 #load "mech.jai";
 #load "terrain.jai";
+#load "guy.jai";
 
 main :: () {
     #if DEBUG {
@@ -32,6 +33,7 @@ main :: () {
     fairy: Fairy;
     mech := spawn_mech();
     terrain: Terrain;
+    guy := spawn_guy();
 
     look_at(*fly_camera, mech.position);
 
@@ -54,6 +56,10 @@ main :: () {
         Engine.draw(
             Engine.get_model_from_storage(terrain.model),
             get_entity_transform(terrain),
+        );
+        Engine.draw(
+            Engine.get_model_from_storage(guy.model),
+            get_entity_transform(guy),
         );
         Engine.end_drawing_frame();
 
