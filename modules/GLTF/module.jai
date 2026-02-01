@@ -10,7 +10,7 @@ Model :: struct {
 
 Mesh_Data :: struct {
     vertices: [..]Vertex;
-    indices:  [..]u16;
+    indices:  [..]u32;
     material: Material;
 }
 
@@ -152,8 +152,9 @@ parse_primitive :: (
             gltf,
             buffers,
             gltf.accessors[primitive.indices],
+            u32,
             u16,
-        ); // @Todo: hardcoded indices to u16, this will need to be resolved sooner or later
+        );
     }
 
     if primitive.material != -1 {
@@ -223,8 +224,13 @@ parse_attribute :: (
     buffers: [][]u8,
     accessor: GLTF_Accessor,
     $T: Type,
+    $R: Type = void,
 ) -> [..]T
 #modify {
+    if R == void {
+        R = T;
+    }
+
     return (T == Vector2 || T == Vector3 || IsScalar(T));
 }
 {
@@ -247,7 +253,7 @@ parse_attribute :: (
     for 0..(element_count - 1) {
         byte_index := start_offset + it * step;
 
-        value := cast(type_of(result.data), *buffer[byte_index]);
+        value := cast(*R, *buffer[byte_index]);
 
         array_add(*result, value.*);
     }

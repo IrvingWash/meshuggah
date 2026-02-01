@@ -61,7 +61,7 @@ draw :: (model: Model, model_transform: Matrix4) {
         glDrawElements(
             GL_TRIANGLES,
             cast(GLsizei, mesh.index_count),
-            GL_UNSIGNED_SHORT,
+            GL_UNSIGNED_INT,
             cast(*void, 0),
         );
 

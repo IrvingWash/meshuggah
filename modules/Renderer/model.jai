@@ -38,7 +38,7 @@ Model_Data :: struct {
 
 Mesh_Data :: struct {
     vertices: []Vertex;
-    indices:  []u16;
+    indices:  []u32;
     material: Material;
 }
 
@@ -91,7 +91,7 @@ create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        mesh_data.indices.count * size_of(u16),
+        mesh_data.indices.count * size_of(u32),
         mesh_data.indices.data,
         GL_STATIC_DRAW,
     );
