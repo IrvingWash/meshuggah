@@ -7,6 +7,12 @@ deinit_asset_storage :: () {
     }
     deinit(*asset_storage.models);
 
+    for *texture, path: asset_storage.textures {
+        free(path);
+        Renderer.destroy_texture(texture);
+    }
+    deinit(*asset_storage.textures);
+
     asset_storage = {};
 }
 
@@ -37,6 +43,7 @@ get_model :: (path: string) -> Renderer.Model {
 
 Asset_Storage :: struct {
     models: Table(string, Renderer.Model);
+    textures: Table(string, Renderer.Texture);
 }
 
 asset_storage: Asset_Storage;
@@ -49,7 +56,16 @@ convert_gltf_model :: (gltf_model: GLTF.Model) -> Renderer.Model_Data {
         texture: Renderer.Texture;
 
         if mesh.material.base_color_texture_path {
-            texture = Renderer.create_2D_texture(mesh.material.base_color_texture_path, .BASE_COLOR);
+            ok:, texture = table_find(*asset_storage.textures, mesh.material.base_color_texture_path);
+            if !ok {
+                texture = Renderer.create_2D_texture(mesh.material.base_color_texture_path, .BASE_COLOR);
+
+                table_set(
+                    *asset_storage.textures,
+                    copy_string(mesh.material.base_color_texture_path),
+                    texture,
+                );
+            }
         }
 
         array_add(

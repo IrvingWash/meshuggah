@@ -150,10 +150,6 @@ destroy_mesh :: (mesh: *Mesh) {
     glDeleteBuffers(1, *mesh.vbo);
     glDeleteBuffers(1, *mesh.ebo);
 
-    if mesh.material.texture.id != 0 {
-        destroy_texture(*mesh.material.texture);
-    }
-
     mesh.* = Mesh.{};
 }
 
