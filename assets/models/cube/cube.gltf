@@ -21,14 +21,11 @@
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Red",
+			"name":"Tile",
 			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.8000074625015259,
-					0.08680471032857895,
-					0.05505336821079254,
-					1
-				],
+				"baseColorTexture":{
+					"index":0
+				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5
 			}
@@ -48,6 +45,19 @@
 					"material":0
 				}
 			]
+		}
+	],
+	"textures":[
+		{
+			"sampler":0,
+			"source":0
+		}
+	],
+	"images":[
+		{
+			"mimeType":"image/png",
+			"name":"tile",
+			"uri":"tile.png"
 		}
 	],
 	"accessors":[
@@ -110,6 +120,12 @@
 			"byteLength":72,
 			"byteOffset":768,
 			"target":34963
+		}
+	],
+	"samplers":[
+		{
+			"magFilter":9729,
+			"minFilter":9987
 		}
 	],
 	"buffers":[

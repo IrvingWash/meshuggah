@@ -6,11 +6,13 @@ in FragmentData
     vec2 uv;
 } fragmentData;
 
-uniform vec4 uColor;
+uniform vec4 uTint;
+
+uniform sampler2D uBaseColor;
 
 out vec4 fragmentColor;
 
 void main()
 {
-    fragmentColor = uColor;
+    fragmentColor = texture(uBaseColor, fragmentData.uv) * uTint;
 }

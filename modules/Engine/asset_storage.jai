@@ -46,6 +46,12 @@ convert_gltf_model :: (gltf_model: GLTF.Model) -> Renderer.Model_Data {
     array_reserve(*model_data.meshes, gltf_model.meshes.count);
 
     for mesh: gltf_model.meshes {
+        texture: Renderer.Texture;
+
+        if mesh.material.base_color_texture_path {
+            texture = Renderer.create_2D_texture(mesh.material.base_color_texture_path, .DIFFUSE);
+        }
+
         array_add(
             *model_data.meshes,
             {
@@ -54,6 +60,7 @@ convert_gltf_model :: (gltf_model: GLTF.Model) -> Renderer.Model_Data {
                 material = {
                     tint = mesh.material.base_color,
                     double_sided = mesh.material.double_sided,
+                    texture = texture,
                 },
             },
         );

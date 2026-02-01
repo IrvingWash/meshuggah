@@ -15,8 +15,8 @@ create_2D_texture :: (path: string, kind: Texture_Kind) -> Texture {
     image := load_image(path);
     defer destroy_image(*image);
 
-    texture.width = image.width;
-    texture.height = image.height;
+    texture.width  = cast(u32, image.width);
+    texture.height = cast(u32, image.height);
 
     using gl;
 
@@ -31,13 +31,13 @@ create_2D_texture :: (path: string, kind: Texture_Kind) -> Texture {
         case .RGB;
             format = GL_RGB;
             store_format = ifx kind == .DIFFUSE
-                then GL_SRGB8
-                else GL_RGB;
+                then cast(s32, GL_SRGB8)
+                else cast(s32, GL_RGB);
         case .RGBA;
             format = GL_RGBA;
             store_format = ifx kind == .DIFFUSE
-                then GL_SRGB8_ALPHA8
-                else GL_RGBA;
+                then cast(s32, GL_SRGB8_ALPHA8)
+                else cast(s32, GL_RGBA);
     }
 
     glTexImage2D(
@@ -65,7 +65,7 @@ create_2D_texture :: (path: string, kind: Texture_Kind) -> Texture {
 destroy_texture :: (texture: *Texture) {
     using gl;
 
-    glDeleteTexturer(1, *texture.id);
+    glDeleteTextures(1, *texture.id);
 
     texture.* = {};
 }
@@ -82,6 +82,12 @@ bind_texture :: (texture: Texture, unit: u32 = 0) {
     glBindTexture(GL_TEXTURE_2D, texture.id);
 }
 
+unbind_texture :: () {
+    glActiveTexture(GL_TEXTURE0);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 
 
 #scope_file
@@ -90,12 +96,12 @@ Image :: struct {
     width:  s32;
     height: s32;
 
-    format:       Image_Format;
+    format: Image_Format;
 
     data: *u8;
 }
 
-Image_Format :: struct {
+Image_Format :: enum {
     RGB;
     RGBA;
 }
@@ -113,9 +119,9 @@ load_image :: (path: string) -> Image {
 
     if channel_count == {
         case 3;
-            image.format = RGB;
+            image.format = .RGB;
         case 4;
-            image.format = RGBA;
+            image.format = .RGBA;
         case;
             assert(false, "Unsupported image channel count %", channel_count);
     }

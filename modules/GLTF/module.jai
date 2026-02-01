@@ -22,7 +22,22 @@ Vertex :: struct {
 
 Material :: struct {
     double_sided: bool;
+
     base_color: Vector4 = { 1, 1, 1, 1 };
+
+    base_color_texture_path: string;
+
+    mag_filter: Texture_Filter;
+    min_filter: Texture_Filter;
+}
+
+Texture_Filter :: enum {
+    NEAREST;
+    LINEAR;
+    NEAREST_MIPMAP_NEAREST;
+    LINEAR_MIPMAP_NEAREST;
+    NEAREST_MIPMAP_LINEAR;
+    LINEAR_MIPMAP_LINEAR;
 }
 
 load :: (path: string) -> ok: bool, error_message: string, Model {
@@ -57,7 +72,7 @@ load :: (path: string) -> ok: bool, error_message: string, Model {
             for primitive: mesh.primitives {
                 array_add(
                     *model.meshes,
-                    parse_primitive(gltf, primitive, buffers),
+                    parse_primitive(gltf, primitive, buffers, root_directory),
                 );
             }
         }
@@ -89,7 +104,12 @@ GLTF_Accessor_Type :: struct {
     MAT4   :: "MAT4";
 }
 
-parse_primitive :: (gltf: GLTF, primitive: GLTF_Primitive, buffers: [][]u8) -> Mesh_Data {
+parse_primitive :: (
+    gltf: GLTF,
+    primitive: GLTF_Primitive,
+    buffers: [][]u8,
+    root_directory: string,
+) -> Mesh_Data {
     mesh_data: Mesh_Data;
 
     {
@@ -122,13 +142,55 @@ parse_primitive :: (gltf: GLTF, primitive: GLTF_Primitive, buffers: [][]u8) -> M
     }
 
     if primitive.material != -1 {
-        material := gltf.materials[primitive.material];
-
-        mesh_data.material.double_sided = material.double_sided;
-        mesh_data.material.base_color.component = material.pbr_metallic_roughness.base_color_factor;
+        mesh_data.material = parse_material(gltf, primitive, root_directory);
     }
 
     return mesh_data;
+}
+
+parse_material :: (gltf: GLTF, primitive: GLTF_Primitive, root_directory: string) -> Material {
+    result: Material;
+
+    gltf_material := gltf.materials[primitive.material];
+
+    result.double_sided = gltf_material.double_sided;
+    result.base_color.component = gltf_material.pbr_metallic_roughness.base_color_factor;
+
+    if gltf_material.pbr_metallic_roughness.base_color_texture.index != -1 {
+        gltf_texture := gltf.textures[gltf_material.pbr_metallic_roughness.base_color_texture.index];
+        gltf_sampler := gltf.samplers[gltf_texture.sampler];
+
+        result.base_color_texture_path = path_join(
+            root_directory,
+            gltf.images[gltf_texture.source].uri,
+            separator = "/",,
+            temp
+        );
+
+        if gltf_sampler.mag_filter == {
+            case GLTF_Texture_Filter.NEAREST;
+                result.mag_filter = .NEAREST;
+            case GLTF_Texture_Filter.LINEAR;
+                result.mag_filter = .LINEAR;
+        }
+
+        if gltf_sampler.min_filter == {
+            case GLTF_Texture_Filter.NEAREST;
+                result.min_filter = .NEAREST;
+            case GLTF_Texture_Filter.LINEAR;
+                result.min_filter = .LINEAR;
+            case GLTF_Texture_Filter.NEAREST_MIPMAP_NEAREST;
+                result.min_filter = .NEAREST_MIPMAP_NEAREST;
+            case GLTF_Texture_Filter.LINEAR_MIPMAP_NEAREST;
+                result.min_filter = .LINEAR_MIPMAP_NEAREST;
+            case GLTF_Texture_Filter.NEAREST_MIPMAP_LINEAR;
+                result.min_filter = .NEAREST_MIPMAP_LINEAR;
+            case GLTF_Texture_Filter.LINEAR_MIPMAP_LINEAR;
+                result.min_filter = .LINEAR_MIPMAP_LINEAR;
+        }
+    }
+
+    return result;
 }
 
 parse_attribute :: (

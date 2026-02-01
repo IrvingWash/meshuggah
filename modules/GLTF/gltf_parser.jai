@@ -6,12 +6,31 @@ GLTF :: struct {
     scene:        int = -1;
     scenes:       [..]GLTF_Scene;
     nodes:        [..]GLTF_Node;
-    materials:   [..]GLTF_Material;
+    materials:    [..]GLTF_Material;
     meshes:       [..]GLTF_Mesh;
+    textures:     [..]GLTF_Texture;
+    images:       [..]GLTF_Image;
     accessors:    [..]GLTF_Accessor;
     buffer_views: [..]GLTF_Buffer_View; @JsonName(bufferViews)
     buffers:      [..]GLTF_Buffer;
+    samplers:     [..]GLTF_Sampler;
 };
+
+GLTF_Texture :: struct {
+    sampler: int = -1;
+    source:  int = -1;
+}
+
+GLTF_Image :: struct {
+    name:     string;
+    mimeType: string;
+    uri:      string;
+}
+
+GLTF_Sampler :: struct {
+    mag_filter: int = -1; @JsonName(magFilter)
+    min_filter: int = -1; @JsonName(minFilter)
+}
 
 GLTF_Asset :: struct {
     generator: string;
@@ -38,9 +57,14 @@ GLTF_Material :: struct {
 
 GLTF_PBR_Metallic_Roughness :: struct {
     base_color_factor: [4]float = float.[1, 1, 1, 1]; @JsonName(baseColorFactor);
+    base_color_texture: GLTF_Base_Color_Texture; @JsonName(baseColorTexture)
 
     metallic_factor:  float; @JsonName(metallicFactor)
     roughness_factor: float; @JsonName(roughnessFactor)
+}
+
+GLTF_Base_Color_Texture :: struct {
+    index: int = -1;
 }
 
 GLTF_Mesh :: struct {
@@ -81,6 +105,15 @@ GLTF_Buffer_View :: struct {
 GLTF_Buffer :: struct {
     byte_length: u32; @JsonName(byteLength)
     uri: string;
+}
+
+GLTF_Texture_Filter :: struct {
+    NEAREST:                int : 9728;
+    LINEAR:                 int : 9729;
+    NEAREST_MIPMAP_NEAREST: int : 9984;
+    LINEAR_MIPMAP_NEAREST:  int : 9985;
+    NEAREST_MIPMAP_LINEAR:  int : 9986;
+    LINEAR_MIPMAP_LINEAR:   int : 9987;
 }
 
 parse_gltf_file :: (path: string) -> ok: bool, error_message: string, GLTF {
@@ -156,6 +189,16 @@ release_gltf_file :: (gltf: *GLTF) {
         free(buffer.uri);
     }
     array_free(gltf.buffers);
+
+    array_free(gltf.textures);
+    array_free(gltf.samplers);
+
+    for image: gltf.images {
+        free(image.uri);
+        free(image.name);
+        free(image.mimeType);
+    }
+    array_free(gltf.images);
 
     gltf.* = {};
 }

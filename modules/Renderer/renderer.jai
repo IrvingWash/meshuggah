@@ -8,6 +8,10 @@ init :: (
         "modules/Renderer/assets/shaders/test_vertex.glsl",
         "modules/Renderer/assets/shaders/test_fragment.glsl",
     );
+    renderer.default_texture = create_2D_texture(
+        "modules/Renderer/assets/textures/default.png",
+        .DIFFUSE,
+    );
 
     glDepthFunc(GL_LESS);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -23,6 +27,7 @@ init :: (
 
 deinit :: () {
     destroy_shader(*renderer.shader);
+    destroy_texture(*renderer.default_texture);
 }
 
 begin_frame :: (camera: $T/interface Render_Camera) {
@@ -41,11 +46,17 @@ draw :: (model: Model, model_transform: Matrix4) {
     set_uniform(renderer.shader, "uProjectionTransform", renderer.transforms.perspective_projection);
     set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
 
-
     for mesh: model.meshes {
         glBindVertexArray(mesh.vao);
 
-        set_uniform(renderer.shader, "uColor", mesh.material.tint);
+        set_uniform(renderer.shader, "uTint", mesh.material.tint);
+        set_uniform(renderer.shader, "uBaseColor", cast(s32, 0));
+
+        if mesh.material.texture.id != 0 {
+            bind_texture(mesh.material.texture);
+        } else {
+            bind_texture(renderer.default_texture);
+        }
 
         glDrawElements(
             GL_TRIANGLES,
@@ -53,6 +64,8 @@ draw :: (model: Model, model_transform: Matrix4) {
             GL_UNSIGNED_SHORT,
             cast(*void, 0),
         );
+
+        unbind_texture();
     }
 }
 
@@ -72,6 +85,8 @@ Renderer :: struct {
         perspective_projection: Matrix4;
         view:                   Matrix4;
     }
+
+    default_texture: Texture;
 }
 
 renderer: Renderer;
