@@ -47,6 +47,7 @@ GLTF_Node :: struct {
     mesh:   int = -1;
     camera: int = -1;
     children: [..]u32;
+    matrix: [16]float = #run Matrix4_Identity.floats;
 }
 
 GLTF_Material :: struct {
