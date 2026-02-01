@@ -113,36 +113,63 @@ parse_primitive :: (
     mesh_data: Mesh_Data;
 
     {
-        positions := parse_attribute(gltf, buffers, gltf.accessors[primitive.attributes.POSITION], Vector3);
+        positions := parse_attribute(
+            gltf,
+            buffers,
+            gltf.accessors[primitive.attributes.POSITION],
+            Vector3,
+        );
+        defer array_free(positions);
+
         array_resize(*mesh_data.vertices, positions.count);
         for position: positions {
             mesh_data.vertices[it_index].position = position;
         }
-        array_free(positions);
     }
 
     if primitive.attributes.NORMAL != -1 {
-        normals := parse_attribute(gltf, buffers, gltf.accessors[primitive.attributes.NORMAL], Vector3);
+        normals := parse_attribute(
+            gltf,
+            buffers,
+            gltf.accessors[primitive.attributes.NORMAL],
+            Vector3,
+        );
+        defer array_free(normals);
+
         for normal: normals {
             mesh_data.vertices[it_index].normal = normal;
         }
-        array_free(normals);
     } 
 
     if primitive.attributes.TEXCOORD_0 != -1 {
-        uvs := parse_attribute(gltf, buffers, gltf.accessors[primitive.attributes.TEXCOORD_0], Vector2);
+        uvs := parse_attribute(
+            gltf,
+            buffers,
+            gltf.accessors[primitive.attributes.TEXCOORD_0],
+            Vector2,
+        );
+        defer array_free(uvs);
+
         for uv: uvs {
             mesh_data.vertices[it_index].uv = uv;
         }
-        array_free(uvs);
     }
 
     if primitive.indices != -1 {
-        mesh_data.indices = parse_attribute(gltf, buffers, gltf.accessors[primitive.indices], u16); // @Todo: hardcoded indices to u16, this will need to be resolved sooner or later
+        mesh_data.indices = parse_attribute(
+            gltf,
+            buffers,
+            gltf.accessors[primitive.indices],
+            u16,
+        ); // @Todo: hardcoded indices to u16, this will need to be resolved sooner or later
     }
 
     if primitive.material != -1 {
-        mesh_data.material = parse_material(gltf, primitive, root_directory);
+        mesh_data.material = parse_material(
+            gltf,
+            primitive,
+            root_directory,
+        );
     }
 
     return mesh_data;
@@ -154,10 +181,16 @@ parse_material :: (gltf: GLTF, primitive: GLTF_Primitive, root_directory: string
     gltf_material := gltf.materials[primitive.material];
 
     result.double_sided = gltf_material.double_sided;
-    result.base_color.component = gltf_material.pbr_metallic_roughness.base_color_factor;
+    result.base_color.component = gltf_material
+        .pbr_metallic_roughness
+        .base_color_factor;
 
     if gltf_material.pbr_metallic_roughness.base_color_texture.index != -1 {
-        gltf_texture := gltf.textures[gltf_material.pbr_metallic_roughness.base_color_texture.index];
+        gltf_texture := gltf.textures[
+            gltf_material
+            .pbr_metallic_roughness
+            .base_color_texture.index
+        ];
         gltf_sampler := gltf.samplers[gltf_texture.sampler];
 
         result.base_color_texture_path = path_join(
@@ -273,7 +306,11 @@ load_buffers :: (root_directory: string, gltf_buffers: []GLTF_Buffer) -> ok: boo
     array_resize(*loaded_buffers, gltf_buffers.count);
 
     for gltf_buffer: gltf_buffers {
-        buffer_path := path_join(root_directory, gltf_buffer.uri,, temp);
+        buffer_path := path_join(
+            root_directory,
+            gltf_buffer.uri,,
+            temp
+        );
         data, ok := read_entire_file(buffer_path);
         if !ok {
             release_buffers(loaded_buffers);
