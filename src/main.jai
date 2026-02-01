@@ -13,7 +13,7 @@ _ :: #import "Renderer"()(DEBUG = DEBUG); // @Sucks: rendering only to pass the 
 
 #load "fly_camera.jai";
 #load "entity.jai";
-#load "cube.jai";
+#load "fairy.jai";
 #load "mech.jai";
 
 main :: () {
@@ -28,18 +28,20 @@ main :: () {
 
     fly_camera := create_fly_camera();
 
-    cube: Cube;
-    mech: Mech;
+    fairy: Fairy;
+    mech := spawn_mech();
 
     while !Engine.is_quit_requested() {
         Engine.begin_frame();
 
+        update_mech(*mech);
+        update_fairy(*fairy, mech);
         update_camera(*fly_camera);
 
         Engine.begin_drawing_frame(fly_camera);
         Engine.draw(
-            Engine.get_model_from_storage(cube.model),
-            get_entity_transform(cube),
+            Engine.get_model_from_storage(fairy.model),
+            get_entity_transform(fairy),
         );
         Engine.draw(
             Engine.get_model_from_storage(mech.model),

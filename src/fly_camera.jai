@@ -18,6 +18,8 @@ Fly_Camera :: struct {
 
     sensitivity: float = 0.005;
     zoom_sensitivity: float = 0.05;
+
+    is_controlled: bool;
 }
 
 create_fly_camera :: (
@@ -42,9 +44,15 @@ look_at :: (camera: *Fly_Camera, target: Vector3) {
 update_camera :: (camera: *Fly_Camera) {
     dt := Engine.get_delta_time();
 
-    move_camera(camera, dt);
-    zoom_camera(camera);
-    turn_camera(camera);
+    if Engine.is_key_pressed(.C) {
+        camera.is_controlled = !camera.is_controlled;
+    }
+
+    if camera.is_controlled {
+        move_camera(camera, dt);
+        zoom_camera(camera);
+        turn_camera(camera);
+    }
 
     update_camera_vectors(camera);
 }
