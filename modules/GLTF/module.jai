@@ -11,12 +11,18 @@ Model :: struct {
 Mesh_Data :: struct {
     vertices: [..]Vertex;
     indices:  [..]u16;
+    material: Material;
 }
 
 Vertex :: struct {
     position: Vector3;
     normal:   Vector3 = { 0, 0, 1 };
     uv:       Vector2;
+}
+
+Material :: struct {
+    double_sided: bool;
+    base_color: Vector4 = { 1, 1, 1, 1 };
 }
 
 load :: (path: string) -> ok: bool, error_message: string, Model {
@@ -113,6 +119,13 @@ parse_primitive :: (gltf: GLTF, primitive: GLTF_Primitive, buffers: [][]u8) -> M
 
     if primitive.indices != -1 {
         mesh_data.indices = parse_attribute(gltf, buffers, gltf.accessors[primitive.indices], u16); // @Todo: hardcoded indices to u16, this will need to be resolved sooner or later
+    }
+
+    if primitive.material != -1 {
+        material := gltf.materials[primitive.material];
+
+        mesh_data.material.double_sided = material.double_sided;
+        mesh_data.material.base_color.component = material.pbr_metallic_roughness.base_color_factor;
     }
 
     return mesh_data;

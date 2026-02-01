@@ -37,7 +37,7 @@ GLTF_Material :: struct {
 }
 
 GLTF_PBR_Metallic_Roughness :: struct {
-    base_color_factor: [4]float; @JsonName(baseColorFactor);
+    base_color_factor: [4]float = float.[1, 1, 1, 1]; @JsonName(baseColorFactor);
 
     metallic_factor:  float; @JsonName(metallicFactor)
     roughness_factor: float; @JsonName(roughnessFactor)
@@ -130,6 +130,11 @@ release_gltf_file :: (gltf: *GLTF) {
         free(node.name);
     }
     array_free(gltf.nodes);
+
+    for material: gltf.materials {
+        free(material.name);
+    }
+    array_free(gltf.materials);
 
     for mesh: gltf.meshes {
         free(mesh.name);

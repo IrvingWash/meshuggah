@@ -8,6 +8,13 @@ Mesh :: struct {
     ebo: u32;
 
     index_count: u32;
+
+    material: Material;
+}
+
+Material :: struct {
+    tint: Vector4;
+    double_sided: bool;
 }
 
 Vertex :: struct {
@@ -22,18 +29,23 @@ Vertex_Attribute_Offsets  :: struct {
     UV       :: #run offset_of(Vertex, "uv");
 }
 
+Model_Data :: struct {
+    meshes: [..]Mesh_Data;
+}
+
 Mesh_Data :: struct {
     vertices: []Vertex;
     indices:  []u16;
+    material: Material;
 }
 
-create_model :: (mesh_data: []$T/interface Mesh_Data) -> Model {
+create_model :: (model_data: Model_Data) -> Model {
     model: Model;
 
-    for mesh: mesh_data {
+    for mesh_data: model_data.meshes {
         array_add(
             *model.meshes,
-            create_mesh(mesh.vertices, mesh.indices),
+            create_mesh(mesh_data),
         );
     }
 
@@ -49,14 +61,21 @@ destroy_model :: (model: *Model) {
     model.* = {};
 }
 
+destroy_model_data :: (model_data: *Model_Data) {
+    array_free(model_data.meshes);
+
+    model_data.* = {};
+}
+
 
 
 #scope_file
 
-create_mesh :: (vertices: []$T/interface Vertex, indices: []u16) -> Mesh {
+create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
     mesh: Mesh;
+    mesh.material = mesh_data.material;
 
-    mesh.index_count = cast(u32, indices.count);
+    mesh.index_count = cast(u32, mesh_data.indices.count);
 
     using gl;
 
@@ -69,16 +88,16 @@ create_mesh :: (vertices: []$T/interface Vertex, indices: []u16) -> Mesh {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        indices.count * size_of(u16),
-        indices.data,
+        mesh_data.indices.count * size_of(u16),
+        mesh_data.indices.data,
         GL_STATIC_DRAW,
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
     glBufferData(
         GL_ARRAY_BUFFER,
-        vertices.count * size_of(Vertex),
-        vertices.data,
+        mesh_data.vertices.count * size_of(Vertex),
+        mesh_data.vertices.data,
         GL_STATIC_DRAW,
     );
 

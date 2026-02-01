@@ -12,11 +12,14 @@ get_model :: (path: string) -> Asset_Handle {
 
     ok =, handle := table_find(*asset_storage.model_storage.map, absolute_path);
     if !ok {
-        ok =, error_message, model_data := GLTF.load(absolute_path);
+        ok =, error_message, gltf_model := GLTF.load(absolute_path);
         assert(ok, error_message);
-        defer GLTF.release(*model_data);
+        defer GLTF.release(*gltf_model);
 
-        model := Renderer.create_model(model_data.meshes);
+        model_data := convert_gltf_model(gltf_model);
+        defer Renderer.destroy_model_data(*model_data);
+
+        model := Renderer.create_model(model_data);
 
         array_add(*asset_storage.model_storage.models, model);
 
@@ -60,6 +63,27 @@ destroy_model_storage :: (model_storage: *Model_Storage) {
     deinit(*model_storage.map);
 
     model_storage.* = {};
+}
+
+convert_gltf_model :: (gltf_model: GLTF.Model) -> Renderer.Model_Data {
+    model_data: Renderer.Model_Data;
+    array_reserve(*model_data.meshes, gltf_model.meshes.count);
+
+    for mesh: gltf_model.meshes {
+        array_add(
+            *model_data.meshes,
+            {
+                vertices = cast,force([]Renderer.Vertex, mesh.vertices),
+                indices = mesh.indices,
+                material = {
+                    tint = mesh.material.base_color,
+                    double_sided = mesh.material.double_sided,
+                },
+            },
+        );
+    }
+
+    return model_data;
 }
 
 #import "File";

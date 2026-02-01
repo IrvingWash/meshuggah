@@ -6,9 +6,11 @@ in FragmentData
     vec2 uv;
 } fragmentData;
 
+uniform vec4 uColor;
+
 out vec4 fragmentColor;
 
 void main()
 {
-    fragmentColor = vec4(1);
+    fragmentColor = uColor;
 }

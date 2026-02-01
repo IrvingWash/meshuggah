@@ -41,8 +41,11 @@ draw :: (model: Model, model_transform: Matrix4) {
     set_uniform(renderer.shader, "uProjectionTransform", renderer.transforms.perspective_projection);
     set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
 
+
     for mesh: model.meshes {
         glBindVertexArray(mesh.vao);
+
+        set_uniform(renderer.shader, "uColor", mesh.material.tint);
 
         glDrawElements(
             GL_TRIANGLES,
