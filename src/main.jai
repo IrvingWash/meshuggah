@@ -11,6 +11,8 @@
 Engine :: #import "Engine"()(DEBUG = DEBUG);
 _ :: #import "Renderer"()(DEBUG = DEBUG); // @Sucks: rendering only to pass the module parameter
 
+#load "fly_camera.jai";
+
 main :: () {
     #if DEBUG {
         defer report_memory_leaks();
@@ -21,19 +23,10 @@ main :: () {
     Engine.init("Meshuggah", 800, 600, vsync = true);
     defer Engine.deinit();
 
+    fly_camera := create_fly_camera();
+
     mech_handle := Engine.get_model("./assets/models/mech/mech.gltf");
     cube_handle := Engine.get_model("./assets/models/cube/cube.gltf");
-
-    camera: struct {
-        position: Vector3 = { 0, 0, 5 };
-        fov: float = #run Engine.deg_to_rad(60);
-        near: float = 0.1;
-        far: float = 1000;
-        front: Vector3 = { 0, 0, -1 };
-        right:    Vector3 = { 1, 0, 0 };
-        world_up: Vector3 = { 0, 1, 0 };
-        up: Vector3 = { 0, 1, 0 };
-    } = {};
 
     while !Engine.is_quit_requested() {
         Engine.begin_frame();
@@ -45,7 +38,9 @@ main :: () {
 
         model_transform := translation_transform * rotation_transform * scale_transform;
 
-        Engine.begin_drawing_frame(camera);
+        update_camera(*fly_camera);
+
+        Engine.begin_drawing_frame(fly_camera);
         Engine.draw(Engine.resolve_model_handle(mech_handle), model_transform);
         Engine.draw(Engine.resolve_model_handle(cube_handle), model_transform);
         Engine.end_drawing_frame();
