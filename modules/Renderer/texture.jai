@@ -109,8 +109,6 @@ Image_Format :: enum {
 load_image :: (path: string) -> Image {
     image: Image;
 
-    stbi_set_flip_vertically_on_load(cast(s32, true));
-
     c_path := temp_c_string(path);
 
     channel_count: s32;
