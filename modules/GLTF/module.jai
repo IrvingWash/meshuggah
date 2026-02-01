@@ -244,6 +244,7 @@ parse_attribute :: (
         else element_size;
 
     result: [..]T;
+    array_reserve(*result, element_count);
     for 0..(element_count - 1) {
         byte_index := start_offset + it * step;
 
@@ -265,6 +266,8 @@ parse_indices_attribute :: (
     return T == u32 || T == u16;
 }
 {
+    assert(accessor.type == GLTF_Accessor_Type.SCALAR, "Expected indices to be scalars, but got %", accessor.type);
+
     // @Copy_N_Paste from parse_attribute
     buffer_view := gltf.buffer_views[accessor.buffer_view];
     buffer := buffers[buffer_view.buffer];
@@ -287,19 +290,22 @@ parse_indices_attribute :: (
             internal_type = u16;
         case GLTF_Component_Type.U32;
             internal_type = u32;
+        case;
+            assert(false, "Expected indices to be either u16 or u32, but got %", accessor.component_type);
     }
 
     result: [..]T;
+    array_reserve(*result, element_count);
     for 0..(element_count - 1) {
         byte_index := start_offset + it * step;
 
         if internal_type == {
             case u16;
                 value := cast(*u16, *buffer[byte_index]);
-                array_add(*result, value.*);
+                array_add(*result, cast(T, value.*));
             case u32;
                 value := cast(*u32, *buffer[byte_index]);
-                array_add(*result, value.*);
+                array_add(*result, cast(T, value.*));
         }
     }
 
