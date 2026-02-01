@@ -25,7 +25,7 @@ main :: () {
 
     camera: struct {
         position: Vector3 = { 0, 0, 5 };
-        fov: float = #run deg_to_rad(60);
+        fov: float = #run Engine.deg_to_rad(60);
         near: float = 0.1;
         far: float = 1000;
         front: Vector3 = { 0, 0, -1 };
@@ -63,9 +63,3 @@ setup_formatting :: () {
     print_style.default_format_struct.use_long_form_if_more_than_this_many_members = 0;
     print_style.default_format_struct.use_newlines_if_long_form = true;
 }
-
-deg_to_rad :: (degrees: float) -> float {
-    return degrees * PI_BY_HALF_CIRCLE;
-}
-
-PI_BY_HALF_CIRCLE :: PI / 180.0;

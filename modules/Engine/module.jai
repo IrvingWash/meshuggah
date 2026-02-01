@@ -36,3 +36,4 @@ Renderer :: #import "Renderer";
 #load "asset_storage.jai";
 #load "time.jai";
 #load "input.jai";
+#load "math.jai";
