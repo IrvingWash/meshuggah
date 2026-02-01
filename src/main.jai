@@ -17,6 +17,7 @@ _ :: #import "Renderer"()(DEBUG = DEBUG); // @Sucks: rendering only to pass the 
 #load "mech.jai";
 #load "terrain.jai";
 #load "guy.jai";
+#load "mccree.jai";
 
 main :: () {
     #if DEBUG {
@@ -34,6 +35,7 @@ main :: () {
     mech := spawn_mech();
     terrain: Terrain;
     guy := spawn_guy();
+    mccree: McCree;
 
     look_at(*fly_camera, mech.position);
 
@@ -60,6 +62,10 @@ main :: () {
         Engine.draw(
             Engine.get_model_from_storage(guy.model),
             get_entity_transform(guy),
+        );
+        Engine.draw(
+            Engine.get_model_from_storage(mccree.model),
+            get_entity_transform(mccree),
         );
         Engine.end_drawing_frame();
 
