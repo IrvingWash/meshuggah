@@ -49,6 +49,8 @@ main :: () {
 
         Engine.end_frame();
 
+        reset_temporary_storage();
+
         #if DEBUG {
             memory_visualizer_per_frame_update();
         }
