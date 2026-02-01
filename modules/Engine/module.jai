@@ -4,9 +4,11 @@ init :: ($$title: string, width: u32, height: u32, vsync: bool) {
     Window.create_window(title, width, height, vsync);
     init_asset_storage();
     Renderer.init(Window.get_framebuffer_size);
+    init_input();
 }
 
 deinit :: () {
+    deinit_input();
     Renderer.deinit();
     deinit_asset_storage();
     Window.destroy_window();

@@ -8,6 +8,11 @@ Key_Handler                     :: #type (key: Key, state: Key_State);
 Window_Size_Change_Handler      :: #type (width: u32, height: u32);
 Window_Position_Change_Handler  :: #type(x: s32, y: s32);
 
+Cursor_Mode :: enum {
+    NORMAL;
+    DISABLED;
+}
+
 create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
     GLFW.set_error_callback(handle_glfw_error);
 
@@ -238,6 +243,15 @@ get_framebuffer_size :: () -> u32, u32 {
 
 get_key :: inline (key: Key) -> Key_State {
     return GLFW.get_key(window_data.window, key);
+}
+
+set_cursor_mode :: (mode: Cursor_Mode) {
+    if mode == {
+        case .NORMAL;
+            GLFW.set_input_mode(window_data.window, .CURSOR, .CURSOR_NORMAL);
+        case .DISABLED;
+            GLFW.set_input_mode(window_data.window, .CURSOR, .CURSOR_DISABLED);
+    }
 }
 
 

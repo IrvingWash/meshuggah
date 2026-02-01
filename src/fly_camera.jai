@@ -58,7 +58,6 @@ MAX_PITCH: float : #run Engine.deg_to_rad(89);
 
 turn_camera :: (camera: *Fly_Camera) {
     xy := Engine.get_cursor_delta();
-    print("%", xy);
 
     camera.yaw   += xy.x * camera.sensitivity;
     camera.pitch -= xy.y * camera.sensitivity;

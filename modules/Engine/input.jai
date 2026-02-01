@@ -1,9 +1,9 @@
 init_input :: () {
-    set_cursor_mode(.DISABLED);
+    Window.set_cursor_mode(.DISABLED);
 
-    add_scroll_handler(on_scroll_change);
-    add_cursor_position_handler(on_cursor_position_change);
-    add_key_handler(on_key);
+    Window.add_scroll_handler(on_scroll_change);
+    Window.add_cursor_position_change_handler(on_cursor_position_change);
+    Window.add_key_handler(on_key);
 }
 
 deinit_input :: () {
