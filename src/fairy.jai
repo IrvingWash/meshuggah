@@ -1,8 +1,8 @@
 Fairy :: struct {
     #as using entity: Entity;
 
-    entity.scale = { 0.5, 0.5, 0.5 };
-    model = "assets/models/cube/cube.gltf";
+    entity.scale = { 0.3, 0.3, 0.3 };
+    model = "assets/models/fairy/fairy.gltf";
 
     offset:          Vector3 = { 2, 3, 1 };
 }

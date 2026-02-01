@@ -15,6 +15,7 @@ _ :: #import "Renderer"()(DEBUG = DEBUG); // @Sucks: rendering only to pass the 
 #load "entity.jai";
 #load "fairy.jai";
 #load "mech.jai";
+#load "terrain.jai";
 
 main :: () {
     #if DEBUG {
@@ -30,6 +31,7 @@ main :: () {
 
     fairy: Fairy;
     mech := spawn_mech();
+    terrain: Terrain;
 
     while !Engine.is_quit_requested() {
         Engine.begin_frame();
@@ -46,6 +48,10 @@ main :: () {
         Engine.draw(
             Engine.get_model_from_storage(mech.model),
             get_entity_transform(mech),
+        );
+        Engine.draw(
+            Engine.get_model_from_storage(terrain.model),
+            get_entity_transform(terrain),
         );
         Engine.end_drawing_frame();
 
