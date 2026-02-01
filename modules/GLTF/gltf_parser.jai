@@ -116,6 +116,14 @@ GLTF_Texture_Filter :: struct {
     LINEAR_MIPMAP_LINEAR:   int : 9987;
 }
 
+GLTF_Accessor_Type :: struct {
+    SCALAR :: "SCALAR";
+    VEC2   :: "VEC2";
+    VEC3   :: "VEC3";
+    VEC4   :: "VEC4";
+    MAT4   :: "MAT4";
+}
+
 parse_gltf_file :: (path: string) -> ok: bool, error_message: string, GLTF {
     gltf: GLTF;
 
@@ -203,9 +211,20 @@ release_gltf_file :: (gltf: *GLTF) {
     gltf.* = {};
 }
 
+GLTF_Component_Type :: struct {
+    I8  :: 5120;
+    U8  :: 5121;
+    I16 :: 5122;
+    U16 :: 5123;
+    U32 :: 5125;
+    F32 :: 5126;
+}
+
 
 
 #scope_file
+
+SUPPORTED_GLTF_VERSION :: "2.0";
 
 validate :: (gltf: GLTF) -> ok: bool, errors: []string {
     errors: [..]string;
@@ -214,7 +233,5 @@ validate :: (gltf: GLTF) -> ok: bool, errors: []string {
 
     return errors.count == 0, errors;
 }
-
-SUPPORTED_GLTF_VERSION :: "2.0";
 
 #import "File";

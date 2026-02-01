@@ -96,14 +96,6 @@ release :: (model: *Model) {
 
 #scope_file
 
-GLTF_Accessor_Type :: struct {
-    SCALAR :: "SCALAR";
-    VEC2   :: "VEC2";
-    VEC3   :: "VEC3";
-    VEC4   :: "VEC4";
-    MAT4   :: "MAT4";
-}
-
 parse_primitive :: (
     gltf: GLTF,
     primitive: GLTF_Primitive,
@@ -284,14 +276,14 @@ get_accessor_component_count :: (accessor: GLTF_Accessor) -> u8 {
 
 get_accessor_component_byte_size :: (accessor: GLTF_Accessor) -> u8 {
     if accessor.component_type == {
-        case 5120; #through;
-        case 5121;
+        case GLTF_Component_Type.I8; #through;
+        case GLTF_Component_Type.U8;
             return 1;
-        case 5122; #through;
-        case 5123;
+        case GLTF_Component_Type.I16; #through;
+        case GLTF_Component_Type.U16;
             return 2;
-        case 5125; #through;
-        case 5126;
+        case GLTF_Component_Type.U32; #through;
+        case GLTF_Component_Type.F32;
             return 4;
         case;
             assert(false, "Unexpected accessor component type %", accessor.component_type);
