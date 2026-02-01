@@ -8,9 +8,9 @@ init :: (
         "modules/Renderer/assets/shaders/test_vertex.glsl",
         "modules/Renderer/assets/shaders/test_fragment.glsl",
     );
-    renderer.default_texture = create_2D_texture(
+    renderer.default_base_color_texture = create_2D_texture(
         "modules/Renderer/assets/textures/default.png",
-        .DIFFUSE,
+        .BASE_COLOR,
     );
 
     glDepthFunc(GL_LESS);
@@ -27,7 +27,7 @@ init :: (
 
 deinit :: () {
     destroy_shader(*renderer.shader);
-    destroy_texture(*renderer.default_texture);
+    destroy_texture(*renderer.default_base_color_texture);
 }
 
 begin_frame :: (camera: $T/interface Render_Camera) {
@@ -55,7 +55,7 @@ draw :: (model: Model, model_transform: Matrix4) {
         if mesh.material.texture.id != 0 {
             bind_texture(mesh.material.texture);
         } else {
-            bind_texture(renderer.default_texture);
+            bind_texture(renderer.default_base_color_texture);
         }
 
         glDrawElements(
@@ -86,7 +86,7 @@ Renderer :: struct {
         view:                   Matrix4;
     }
 
-    default_texture: Texture;
+    default_base_color_texture: Texture;
 }
 
 renderer: Renderer;

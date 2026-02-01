@@ -49,7 +49,7 @@ convert_gltf_model :: (gltf_model: GLTF.Model) -> Renderer.Model_Data {
         texture: Renderer.Texture;
 
         if mesh.material.base_color_texture_path {
-            texture = Renderer.create_2D_texture(mesh.material.base_color_texture_path, .DIFFUSE);
+            texture = Renderer.create_2D_texture(mesh.material.base_color_texture_path, .BASE_COLOR);
         }
 
         array_add(

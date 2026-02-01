@@ -5,11 +5,21 @@ Texture :: struct {
     height: u32;
 }
 
-Texture_Kind :: enum {
-    DIFFUSE;
+Texture_Usage :: enum {
+    BASE_COLOR;
 }
 
-create_2D_texture :: (path: string, kind: Texture_Kind) -> Texture {
+create_2D_texture :: (path: string, usage: Texture_Usage) -> Texture {
+    wrap: GLint;
+    should_generate_mipmaps: bool;
+    should_store_as_srgb: bool;
+    if #complete usage == {
+        case .BASE_COLOR;
+            wrap = GL_REPEAT;
+            should_generate_mipmaps = true;
+            should_store_as_srgb = true;
+    }
+
     texture: Texture;
 
     image := load_image(path);
@@ -30,15 +40,17 @@ create_2D_texture :: (path: string, kind: Texture_Kind) -> Texture {
     if image.format == {
         case .RGB;
             format = GL_RGB;
-            store_format = ifx kind == .DIFFUSE
+            store_format = ifx should_store_as_srgb
                 then cast(s32, GL_SRGB8)
-                else cast(s32, GL_RGB);
+                else cast(s32, GL_RGB8);
         case .RGBA;
             format = GL_RGBA;
-            store_format = ifx kind == .DIFFUSE
+            store_format = ifx should_store_as_srgb
                 then cast(s32, GL_SRGB8_ALPHA8)
-                else cast(s32, GL_RGBA);
+                else cast(s32, GL_RGBA8);
     }
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     glTexImage2D(
         GL_TEXTURE_2D,
@@ -52,12 +64,15 @@ create_2D_texture :: (path: string, kind: Texture_Kind) -> Texture {
         image.data,
     );
 
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    if should_generate_mipmaps {
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
 
     return texture;
 }
