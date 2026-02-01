@@ -27,11 +27,13 @@ main :: () {
     Engine.init("Meshuggah", 800, 600, vsync = true);
     defer Engine.deinit();
 
-    fly_camera := create_fly_camera();
+    fly_camera := create_fly_camera({ -10, 1, 9 });
 
     fairy: Fairy;
     mech := spawn_mech();
     terrain: Terrain;
+
+    look_at(*fly_camera, mech.position);
 
     while !Engine.is_quit_requested() {
         Engine.begin_frame();
