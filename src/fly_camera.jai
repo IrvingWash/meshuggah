@@ -17,6 +17,7 @@ Fly_Camera :: struct {
     speed: float;
 
     sensitivity: float = 0.005;
+    zoom_sensitivity: float = 0.05;
 }
 
 create_fly_camera :: (
@@ -52,8 +53,8 @@ update_camera :: (camera: *Fly_Camera) {
 
 #scope_file
 
-MAX_FOV:  float : 100;
-MIN_FOV:  float : 1;
+MAX_FOV:  float : #run Engine.deg_to_rad(100);
+MIN_FOV:  float : #run Engine.deg_to_rad(1);
 MAX_PITCH: float : #run Engine.deg_to_rad(89);
 
 turn_camera :: (camera: *Fly_Camera) {
@@ -71,7 +72,7 @@ turn_camera :: (camera: *Fly_Camera) {
 zoom_camera :: (camera: *Fly_Camera) {
     offset := Engine.get_scroll_delta().y;
 
-    camera.fov -= offset;
+    camera.fov -= offset * camera.zoom_sensitivity;
 
     if camera.fov < MIN_FOV {
         camera.fov = MIN_FOV;
