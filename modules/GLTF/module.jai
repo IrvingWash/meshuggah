@@ -112,7 +112,7 @@ parse_primitive :: (gltf: GLTF, primitive: GLTF_Primitive, buffers: [][]u8) -> M
     }
 
     if primitive.indices != -1 {
-        mesh_data.indices = parse_attribute(gltf, buffers, gltf.accessors[primitive.indices], u16);
+        mesh_data.indices = parse_attribute(gltf, buffers, gltf.accessors[primitive.indices], u16); // @Todo: hardcoded indices to u16, this will need to be resolved sooner or later
     }
 
     return mesh_data;
