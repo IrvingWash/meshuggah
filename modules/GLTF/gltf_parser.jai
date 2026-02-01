@@ -6,6 +6,7 @@ GLTF :: struct {
     scene:        int = -1;
     scenes:       [..]GLTF_Scene;
     nodes:        [..]GLTF_Node;
+    materials:   [..]GLTF_Material;
     meshes:       [..]GLTF_Mesh;
     accessors:    [..]GLTF_Accessor;
     buffer_views: [..]GLTF_Buffer_View; @JsonName(bufferViews)
@@ -29,6 +30,19 @@ GLTF_Node :: struct {
     camera: int = -1;
 }
 
+GLTF_Material :: struct {
+    name: string;
+    double_sided: bool; @JsonName(doubleSided)
+    pbr_metallic_roughness: GLTF_PBR_Metallic_Roughness; @JsonName(pbrMetallicRoughness)
+}
+
+GLTF_PBR_Metallic_Roughness :: struct {
+    base_color_factor: [4]float; @JsonName(baseColorFactor);
+
+    metallic_factor:  float; @JsonName(metallicFactor)
+    roughness_factor: float; @JsonName(roughnessFactor)
+}
+
 GLTF_Mesh :: struct {
     name: string;
     primitives: [..]GLTF_Primitive;
@@ -37,6 +51,7 @@ GLTF_Mesh :: struct {
 GLTF_Primitive :: struct {
     attributes: GLTF_Attributes;
     indices: int = -1;
+    material: int = -1;
 }
 
 GLTF_Attributes :: struct {

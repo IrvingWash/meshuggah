@@ -22,6 +22,7 @@ main :: () {
     defer Engine.deinit();
 
     mech_handle := Engine.get_model("./assets/models/mech/mech.gltf");
+    cube_handle := Engine.get_model("./assets/models/cube/cube.gltf");
 
     camera: struct {
         position: Vector3 = { 0, 0, 5 };
@@ -46,6 +47,7 @@ main :: () {
 
         Engine.begin_drawing_frame(camera);
         Engine.draw(Engine.resolve_model_handle(mech_handle), model_transform);
+        Engine.draw(Engine.resolve_model_handle(cube_handle), model_transform);
         Engine.end_drawing_frame();
 
         Engine.end_frame();
