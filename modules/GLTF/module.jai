@@ -148,12 +148,11 @@ parse_primitive :: (
     }
 
     if primitive.indices != -1 {
-        mesh_data.indices = parse_attribute(
+        mesh_data.indices = parse_indices_attribute(
             gltf,
             buffers,
             gltf.accessors[primitive.indices],
             u32,
-            u16,
         );
     }
 
@@ -224,13 +223,8 @@ parse_attribute :: (
     buffers: [][]u8,
     accessor: GLTF_Accessor,
     $T: Type,
-    $R: Type = void,
 ) -> [..]T
 #modify {
-    if R == void {
-        R = T;
-    }
-
     return (T == Vector2 || T == Vector3 || IsScalar(T));
 }
 {
@@ -253,9 +247,60 @@ parse_attribute :: (
     for 0..(element_count - 1) {
         byte_index := start_offset + it * step;
 
-        value := cast(*R, *buffer[byte_index]);
+        value := cast(*T, *buffer[byte_index]);
 
         array_add(*result, value.*);
+    }
+
+    return result;
+}
+
+parse_indices_attribute :: (
+    gltf: GLTF,
+    buffers: [][]u8,
+    accessor: GLTF_Accessor,
+    $T: Type,
+) -> [..]T
+#modify {
+    return T == u32 || T == u16;
+}
+{
+    // @Copy_N_Paste from parse_attribute
+    buffer_view := gltf.buffer_views[accessor.buffer_view];
+    buffer := buffers[buffer_view.buffer];
+
+    start_offset := buffer_view.byte_offset + accessor.byte_offset;
+    element_count := accessor.count;
+
+    component_count := get_accessor_component_count(accessor);
+    component_byte_size := get_accessor_component_byte_size(accessor);
+
+    element_size := component_count * component_byte_size;
+
+    step := ifx buffer_view.byte_stride != 0
+        then buffer_view.byte_stride
+        else element_size;
+
+    internal_type: Type;
+    if accessor.component_type == {
+        case GLTF_Component_Type.U16;
+            internal_type = u16;
+        case GLTF_Component_Type.U32;
+            internal_type = u32;
+    }
+
+    result: [..]T;
+    for 0..(element_count - 1) {
+        byte_index := start_offset + it * step;
+
+        if internal_type == {
+            case u16;
+                value := cast(*u16, *buffer[byte_index]);
+                array_add(*result, value.*);
+            case u32;
+                value := cast(*u32, *buffer[byte_index]);
+                array_add(*result, value.*);
+        }
     }
 
     return result;
