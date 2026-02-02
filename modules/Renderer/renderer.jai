@@ -52,13 +52,14 @@ end_frame :: () {
 
     use_shader(renderer.shader);
 
-    set_uniform(renderer.shader, "uMaterial.baseColorTexture", cast(s32, 0));
     set_uniform(renderer.shader, "uProjectionTransform", renderer.transforms.perspective_projection);
     set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
 
     for batch: renderer.batches {
         glBindVertexArray(batch.mesh.vao);
+
         set_uniform(renderer.shader, "uMaterial.baseColor", batch.mesh.material.base_color);
+        set_uniform(renderer.shader, "uMaterial.baseColorTexture", cast(s32, 0));
 
         if batch.mesh.material.base_color_texture.id != 0 {
             bind_texture(batch.mesh.material.base_color_texture, 0);
