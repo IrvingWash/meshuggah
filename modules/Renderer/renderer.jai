@@ -46,6 +46,10 @@ draw :: (model: Model, model_transform: Matrix4) {
     }
 }
 
+set_ambient_light :: (color: Vector3) {
+    renderer.ambient_light.color = color;
+}
+
 set_directional_light :: (light: Directional_Light) {
     renderer.directional_light = light;
 }
@@ -63,6 +67,11 @@ end_frame :: () {
     );
     set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
 
+    set_uniform(
+        renderer.shader,
+        "uAmbientLight.color",
+        renderer.ambient_light.color,
+    );
     set_uniform(
         renderer.shader,
         "uDirectionalLight.direction",
@@ -128,6 +137,7 @@ Renderer :: struct {
 
     batches: Table(u32, Batch);
 
+    ambient_light: Ambient_Light;
     directional_light: Directional_Light;
 }
 

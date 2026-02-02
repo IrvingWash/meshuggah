@@ -6,6 +6,11 @@ struct Material
     vec4 baseColor;
 };
 
+struct AmbientLight
+{
+    vec3 color;
+};
+
 struct DirectionalLight
 {
     vec3 direction;
@@ -19,6 +24,7 @@ in FragmentData
 } fragmentData;
 
 uniform Material uMaterial;
+uniform AmbientLight uAmbientLight;
 uniform DirectionalLight uDirectionalLight;
 
 out vec4 fragmentColor;
@@ -41,7 +47,7 @@ void main()
     vec3 albedo = texelColor.rgb;
     float alpha = texelColor.a;
 
-    vec3 color = vec3(0);
+    vec3 color = albedo * uAmbientLight.color;
 
     color += calculateDirectionalLight(
         uDirectionalLight,

@@ -51,7 +51,8 @@ main :: () {
         update_camera(*fly_camera);
 
         Engine.begin_drawing_frame(fly_camera);
-        Engine.draw_directional_light(sun);
+        Engine.set_directional_light(sun);
+        Engine.set_ambient_light({ 0.1, 0, 0 });
         Engine.draw(
             Engine.get_model_from_storage(fairy.model),
             get_entity_transform(fairy),
