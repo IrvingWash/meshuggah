@@ -95,6 +95,7 @@ release :: (model: *Model_Data) {
     for mesh: model.meshes {
         array_free(mesh.vertices);
         array_free(mesh.indices);
+        free(mesh.material.base_color_texture_path);
     }
     array_free(model.meshes);
 
@@ -258,8 +259,7 @@ parse_gltf_material :: (gltf: GLTF, gltf_primitive: GLTF_Primitive, root_directo
         result.base_color_texture_path = path_join(
             root_directory,
             gltf.images[gltf_texture.source].uri,
-            separator = "/",,
-            temp
+            separator = "/",
         );
 
         if gltf_sampler.mag_filter == {

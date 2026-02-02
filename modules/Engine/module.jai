@@ -5,9 +5,11 @@ init :: ($$title: string, width: u32, height: u32, vsync: bool) {
     init_asset_storage();
     Renderer.init(Window.get_framebuffer_size);
     init_input();
+    init_time();
 }
 
 deinit :: () {
+    deinit_time();
     deinit_input();
     Renderer.deinit();
     deinit_asset_storage();

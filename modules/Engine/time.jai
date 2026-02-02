@@ -61,7 +61,7 @@ update_time :: () {
             if timer.is_interval {
                 timer.start_time += timer.duration;
             } else {
-                clear_timer(timer.id);
+                clear_timer(timer.id); // @Todo: is it save to remove table elements while iterating the table?
             }
         }
     }
