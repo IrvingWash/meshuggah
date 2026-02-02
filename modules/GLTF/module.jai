@@ -77,7 +77,7 @@ load :: (path: string) -> ok: bool, error_message: string, Model_Data {
     // Parse all the nodes of the scene and put them into `model`
     gltf_scene := gltf.scenes[gltf.scene];
     array_reserve(*model.nodes, gltf.nodes.count);
-    array_reserve(*model.meshes, gltf.meshes.count); // This should be the count of all primitives, but thats unnecessary complex
+    array_reserve(*model.meshes, get_all_primitives_count(gltf));
     for gltf_node_index: gltf_scene.nodes {
         parse_gltf_node(
             gltf,
@@ -469,6 +469,16 @@ release_gltf_buffers :: (buffers: [..][]u8) {
     }
 
     array_free(buffers);
+}
+
+get_all_primitives_count :: (gltf: GLTF) -> u32 {
+    result: u32;
+
+    for gltf_mesh: gltf.meshes {
+        result += cast(u32, gltf_mesh.primitives.count);
+    }
+
+    return result;
 }
 
 #import "Basic";

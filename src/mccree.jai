@@ -7,7 +7,7 @@ McCree :: struct {
 spawn_mccree :: () -> McCree{
     mccree: McCree;
 
-    mccree.position = { -2, 0, 2 };
+    mccree.position = { -2, 0.1, 2 };
 
     return mccree;
 }
