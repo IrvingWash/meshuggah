@@ -42,30 +42,13 @@ draw :: (model: Model, model_transform: Matrix4) {
 
     use_shader(renderer.shader);
 
-    set_uniform(renderer.shader, "uModelTransform", model_transform);
     set_uniform(renderer.shader, "uProjectionTransform", renderer.transforms.perspective_projection);
     set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
 
-    for mesh: model.meshes {
-        glBindVertexArray(mesh.vao);
-
-        set_uniform(renderer.shader, "uTint", mesh.material.tint);
-        set_uniform(renderer.shader, "uMaterial.baseColor", cast(s32, 0));
-
-        if mesh.material.texture.id != 0 {
-            bind_texture(mesh.material.texture);
-        } else {
-            bind_texture(renderer.default_base_color_texture);
+    for node: model.nodes {
+        if node.parent == -1 {
+            draw_node(model, cast(u32, it_index), model_transform);
         }
-
-        glDrawElements(
-            GL_TRIANGLES,
-            cast(GLsizei, mesh.index_count),
-            GL_UNSIGNED_INT,
-            cast(*void, 0),
-        );
-
-        unbind_texture();
     }
 }
 
@@ -116,6 +99,51 @@ begin_backbuffer_pass :: (clear: bool) {
             gl.glClearColor(x, y, z, w);
         }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+}
+
+draw_node :: (model: Model, node_index: u32, parent_world_transform: Matrix4) {
+    using gl;
+
+    node := model.nodes[node_index];
+
+    world_transform := parent_world_transform * node.local_transform;
+
+    if node.mesh_count > 0 {
+        set_uniform(renderer.shader, "uModelTransform", world_transform);
+
+        for node.first_mesh..(node.first_mesh + node.mesh_count - 1) {
+            mesh := model.meshes[it];
+
+            glBindVertexArray(mesh.vao);
+
+            set_uniform(renderer.shader, "uTint", mesh.material.tint);
+            set_uniform(renderer.shader, "uMaterial.baseColor", cast(s32, 0));
+
+            if mesh.material.texture.id != 0 {
+                bind_texture(mesh.material.texture);
+            } else {
+                bind_texture(renderer.default_base_color_texture);
+            }
+            defer unbind_texture();
+
+            if mesh.material.double_sided {
+                glDisable(GL_CULL_FACE);
+           } else {
+                glEnable(GL_CULL_FACE);
+           }
+
+            glDrawElements(
+                GL_TRIANGLES,
+                cast(GLsizei, mesh.index_count),
+                GL_UNSIGNED_INT,
+                cast(*void, 0),
+            );
+        }
+    }
+
+    for child_index: node.children {
+        draw_node(model, child_index, world_transform);
     }
 }
 

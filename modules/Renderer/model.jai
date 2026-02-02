@@ -14,6 +14,7 @@ Mesh :: struct {
 }
 
 Node :: struct {
+    parent:   int = -1;
     children: [..]u32;
 
     first_mesh: u32;
@@ -71,8 +72,6 @@ create_model :: (model_data: Model_Data) -> Model {
             node,
         );
     }
-
-    print("%\n", model);
 
     return model;
 }

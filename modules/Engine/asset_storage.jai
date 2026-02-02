@@ -55,6 +55,7 @@ convert_gltf_model :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data {
 
     for gltf_node: gltf_model.nodes {
         node := Renderer.Node.{
+            parent = gltf_node.parent,
             first_mesh = gltf_node.first_mesh,
             mesh_count = gltf_node.mesh_count,
             local_transform = gltf_node.local_transform,
