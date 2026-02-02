@@ -22,11 +22,11 @@ get_model :: (path: string) -> Renderer.Model {
 
     ok =, model := table_find(*asset_storage.models, absolute_path);
     if !ok {
-        ok =, error_message, gltf_model := GLTF.load(absolute_path);
+        ok =, error_message, gltf_model_data := GLTF.load(absolute_path);
         assert(ok, error_message);
-        defer GLTF.release(*gltf_model);
+        defer GLTF.release(*gltf_model_data);
 
-        model_data := convert_gltf_model(gltf_model);
+        model_data := convert_gltf_model_data(gltf_model_data);
         defer Renderer.destroy_model_data(*model_data);
 
         model = Renderer.create_model(model_data);
@@ -48,7 +48,7 @@ Asset_Storage :: struct {
 
 asset_storage: Asset_Storage;
 
-convert_gltf_model :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data {
+convert_gltf_model_data :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data {
     model_data: Renderer.Model_Data;
     array_reserve(*model_data.meshes, gltf_model.meshes.count);
     array_reserve(*model_data.nodes, gltf_model.nodes.count);
