@@ -44,10 +44,16 @@ GLTF_Scene :: struct {
 
 GLTF_Node :: struct {
     name: string;
-    mesh:   int = -1;
-    camera: int = -1;
     children: [..]u32;
-    matrix: [16]float = #run Matrix4_Identity.floats; // @Todo: unused for now. We don't have a concpet of nodes in the engine. GLTF most probably has column-major matrices, but we want row major here, as Jai's Math library stores matrices in row-major format.
+
+    mesh:   int = -1;
+
+    camera: int = -1;
+
+    // GLTF contains column-major matrices.
+    // We transpose here the matrix so the default value of GLTF_Node is column-major too, for consistency.
+    // So, this is field contains a column-major matrix.
+    matrix: [16]float = #run transpose(Matrix4_Identity).floats;
 }
 
 GLTF_Material :: struct {
