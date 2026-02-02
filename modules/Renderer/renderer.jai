@@ -46,14 +46,42 @@ draw :: (model: Model, model_transform: Matrix4) {
     }
 }
 
+set_ambient_light :: (color: Vector3) {
+    renderer.ambient_light.color = color;
+}
+
+set_directional_light :: (light: Directional_Light) {
+    renderer.directional_light = light;
+}
+
 end_frame :: () {
     // Looks more like "end_backbuffer_pass"
     using gl;
 
     use_shader(renderer.shader);
 
-    set_uniform(renderer.shader, "uProjectionTransform", renderer.transforms.perspective_projection);
+    set_uniform(
+        renderer.shader,
+        "uProjectionTransform",
+        renderer.transforms.perspective_projection,
+    );
     set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
+
+    set_uniform(
+        renderer.shader,
+        "uAmbientLight.color",
+        renderer.ambient_light.color,
+    );
+    set_uniform(
+        renderer.shader,
+        "uDirectionalLight.direction",
+        renderer.directional_light.direction,
+    );
+    set_uniform(
+        renderer.shader,
+        "uDirectionalLight.color",
+        renderer.directional_light.color,
+    );
 
     for batch: renderer.batches {
         glBindVertexArray(batch.mesh.vao);
@@ -64,7 +92,7 @@ end_frame :: () {
         if batch.mesh.material.base_color_texture.id != 0 {
             bind_texture(batch.mesh.material.base_color_texture, 0);
         } else {
-            bind_texture(renderer.default_base_color_texture);
+            bind_texture(renderer.default_base_color_texture, 0);
         }
 
         if batch.mesh.material.double_sided {
@@ -108,6 +136,9 @@ Renderer :: struct {
     default_base_color_texture: Texture;
 
     batches: Table(u32, Batch);
+
+    ambient_light: Ambient_Light;
+    directional_light: Directional_Light;
 }
 
 Batch :: struct {

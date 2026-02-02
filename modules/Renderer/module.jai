@@ -4,3 +4,4 @@
 #load "model.jai";
 #load "shader.jai";
 #load "texture.jai";
+#load "light.jai";
