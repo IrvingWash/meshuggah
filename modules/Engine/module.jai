@@ -29,9 +29,12 @@ end_frame :: () {
 is_quit_requested :: Window.should_window_close;
 toggle_fullscreen :: Window.toggle_fullscreen;
 
-begin_drawing_frame :: Renderer.begin_frame;
-end_drawing_frame   :: Renderer.end_frame;
-draw                :: Renderer.draw;
+Directional_Light :: Renderer.Directional_Light;
+
+begin_drawing_frame    :: Renderer.begin_frame;
+end_drawing_frame      :: Renderer.end_frame;
+draw                   :: Renderer.draw;
+draw_directional_light :: Renderer.set_directional_light;
 
 get_model_from_storage :: get_model;
 

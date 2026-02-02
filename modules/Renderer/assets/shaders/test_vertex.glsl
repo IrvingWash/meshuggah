@@ -21,6 +21,6 @@ void main()
 
     gl_Position = uProjectionTransform * uViewTransform * worldPosition;
 
-    fragmentData.normal = aNormal;
+    fragmentData.normal = transpose(inverse(mat3(uModelTransform))) * aNormal; // @Todo send normal transform into shader
     fragmentData.uv = aUV;
 }

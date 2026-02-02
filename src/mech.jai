@@ -10,13 +10,7 @@ Mech :: struct {
 spawn_mech :: () -> Mech {
     mech: Mech;
 
-    qx: Quaternion;
-    qy: Quaternion;
-
-    set_from_axis_and_angle(*qx, { 1, 0, 0 }, Engine.deg_to_rad(90));
-    set_from_axis_and_angle(*qy, { 0, 1, 0 }, Engine.deg_to_rad(180));
-
-    mech.orientation = qy * qx;
+    set_from_axis_and_angle(*mech.orientation, { 1, 0, 0 }, Engine.deg_to_rad(90));
 
     return mech;
 }

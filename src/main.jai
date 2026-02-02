@@ -36,6 +36,9 @@ main :: () {
     terrain: Terrain;
     guy := spawn_guy();
     mccree := spawn_mccree();
+    sun: Engine.Directional_Light = {
+        direction = { 0, -1, -1 },
+    };
 
     look_at(*fly_camera, mccree.position);
 
@@ -47,6 +50,7 @@ main :: () {
         update_camera(*fly_camera);
 
         Engine.begin_drawing_frame(fly_camera);
+        Engine.draw_directional_light(sun);
         Engine.draw(
             Engine.get_model_from_storage(fairy.model),
             get_entity_transform(fairy),
