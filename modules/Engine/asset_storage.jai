@@ -51,6 +51,25 @@ asset_storage: Asset_Storage;
 convert_gltf_model :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data {
     model_data: Renderer.Model_Data;
     array_reserve(*model_data.meshes, gltf_model.meshes.count);
+    array_reserve(*model_data.nodes, gltf_model.nodes.count);
+
+    for gltf_node: gltf_model.nodes {
+        node := Renderer.Node.{
+            first_mesh = gltf_node.first_mesh,
+            mesh_count = gltf_node.mesh_count,
+            local_transform = gltf_node.local_transform,
+        };
+
+        array_reserve(*node.children, gltf_node.children.count);
+        for child: gltf_node.children {
+            array_add(*node.children, child);
+        }
+
+        array_add(
+            *model_data.nodes,
+            node,
+        );
+    }
 
     for mesh: gltf_model.meshes {
         texture: Renderer.Texture;
