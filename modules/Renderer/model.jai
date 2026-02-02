@@ -66,12 +66,7 @@ create_model :: (model_data: Model_Data) -> Model {
         );
     }
 
-    for node: model_data.nodes {
-        array_add(
-            *model.nodes,
-            node,
-        );
-    }
+    array_add(*model.nodes, ..model_data.nodes);
 
     return model;
 }

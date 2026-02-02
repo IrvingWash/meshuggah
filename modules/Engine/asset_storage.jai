@@ -62,9 +62,7 @@ convert_gltf_model_data :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data 
         };
 
         array_reserve(*node.children, gltf_node.children.count);
-        for child: gltf_node.children {
-            array_add(*node.children, child);
-        }
+        array_add(*node.children, ..gltf_node.children);
 
         array_add(
             *model_data.nodes,
