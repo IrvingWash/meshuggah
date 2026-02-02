@@ -38,6 +38,7 @@ main :: () {
     mccree := spawn_mccree();
     sun: Engine.Directional_Light = {
         direction = { 0, -1, -1 },
+        color = { 1, 0.8, 0.8 },
     };
 
     look_at(*fly_camera, mccree.position);
