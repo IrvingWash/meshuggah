@@ -10,8 +10,8 @@ create_shader :: (vertex_path: string, fragment_path: string) -> Shader {
 
     using gl;
 
-    vertex_shader := make_shader(vertex_path, .VERTEX);
-    fragment_shader := make_shader(fragment_path, .FRAGMENT);
+    vertex_shader := make_shader(vertex_path, Shader_Kind.VERTEX);
+    fragment_shader := make_shader(fragment_path, Shader_Kind.FRAGMENT);
     defer glDeleteShader(vertex_shader);
     defer glDeleteShader(fragment_shader);
 
@@ -117,9 +117,9 @@ make_shader :: (path: string, kind: Shader_Kind) -> u32 {
 
     shader: GLuint;
     if kind == {
-        case .VERTEX;
+        case Shader_Kind.VERTEX;
             shader = glCreateShader(GL_VERTEX_SHADER);
-        case .FRAGMENT;
+        case Shader_Kind.FRAGMENT;
             shader = glCreateShader(GL_FRAGMENT_SHADER);
     }
 

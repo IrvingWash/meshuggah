@@ -11,11 +11,11 @@ deinit_input :: () {
 }
 
 is_key_held :: inline (key: Window.Key) -> bool {
-    return Window.get_key(key) == .PRESS;
+    return Window.get_key(key) == Window.Key_State.PRESS;
 }
 
 is_key_pressed :: inline (key: Window.Key) -> bool {
-    return input_state.key_state[key] == .PRESS;
+    return input_state.key_state[key] == Window.Key_State.PRESS;
 }
 
 get_cursor_delta :: inline () -> Vector2 {

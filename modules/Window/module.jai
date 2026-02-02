@@ -27,7 +27,7 @@ create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
     // Hints
     GLFW.set_window_hint(.CONTEXT_VERSION_MAJOR, 3);
     GLFW.set_window_hint(.CONTEXT_VERSION_MINOR, 3);
-    GLFW.set_window_hint(.OPENGL_PROFILE, .CORE);
+    GLFW.set_window_hint(GLFW.Window_Hint.OPENGL_PROFILE, GLFW.OpenGL_Profile.CORE);
     GLFW.set_window_hint(.SRGB_CAPABLE, true);
     GLFW.set_window_hint(.DEPTH_BITS, 24);
     GLFW.set_window_hint(.STENCIL_BITS, 8);
@@ -247,10 +247,10 @@ get_key :: inline (key: Key) -> Key_State {
 
 set_cursor_mode :: (mode: Cursor_Mode) {
     if mode == {
-        case .NORMAL;
-            GLFW.set_input_mode(window_data.window, .CURSOR, .CURSOR_NORMAL);
-        case .DISABLED;
-            GLFW.set_input_mode(window_data.window, .CURSOR, .CURSOR_DISABLED);
+        case Cursor_Mode.NORMAL;
+            GLFW.set_input_mode(window_data.window, GLFW.Input_Mode.CURSOR, GLFW.Input_Mode_Value.CURSOR_NORMAL);
+        case Cursor_Mode.DISABLED;
+            GLFW.set_input_mode(window_data.window, GLFW.Input_Mode.CURSOR, GLFW.Input_Mode_Value.CURSOR_DISABLED);
     }
 }
 

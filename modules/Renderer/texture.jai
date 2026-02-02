@@ -14,7 +14,7 @@ create_2D_texture :: (path: string, usage: Texture_Usage) -> Texture {
     should_generate_mipmaps: bool;
     should_store_as_srgb: bool;
     if #complete usage == {
-        case .BASE_COLOR;
+        case Texture_Usage.BASE_COLOR;
             wrap = GL_REPEAT;
             should_generate_mipmaps = true;
             should_store_as_srgb = true;
@@ -38,12 +38,12 @@ create_2D_texture :: (path: string, usage: Texture_Usage) -> Texture {
     store_format: GLint;
     format:       GLenum;
     if image.format == {
-        case .RGB;
+        case Image_Format.RGB;
             format = GL_RGB;
             store_format = ifx should_store_as_srgb
                 then cast(s32, GL_SRGB8)
                 else cast(s32, GL_RGB8);
-        case .RGBA;
+        case Image_Format.RGBA;
             format = GL_RGBA;
             store_format = ifx should_store_as_srgb
                 then cast(s32, GL_SRGB8_ALPHA8)
@@ -132,9 +132,9 @@ load_image :: (path: string) -> Image {
 
     if channel_count == {
         case 3;
-            image.format = .RGB;
+            image.format = Image_Format.RGB;
         case 4;
-            image.format = .RGBA;
+            image.format = Image_Format.RGBA;
         case;
             assert(false, "Unsupported image channel count %", channel_count);
     }

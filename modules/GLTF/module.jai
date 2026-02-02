@@ -264,24 +264,24 @@ parse_gltf_material :: (gltf: GLTF, gltf_primitive: GLTF_Primitive, root_directo
 
         if gltf_sampler.mag_filter == {
             case GLTF_Texture_Filter.NEAREST;
-                result.mag_filter = .NEAREST;
+                result.mag_filter = Texture_Filter.NEAREST;
             case GLTF_Texture_Filter.LINEAR;
-                result.mag_filter = .LINEAR;
+                result.mag_filter = Texture_Filter.LINEAR;
         }
 
         if gltf_sampler.min_filter == {
             case GLTF_Texture_Filter.NEAREST;
-                result.min_filter = .NEAREST;
+                result.min_filter = Texture_Filter.NEAREST;
             case GLTF_Texture_Filter.LINEAR;
-                result.min_filter = .LINEAR;
+                result.min_filter = Texture_Filter.LINEAR;
             case GLTF_Texture_Filter.NEAREST_MIPMAP_NEAREST;
-                result.min_filter = .NEAREST_MIPMAP_NEAREST;
+                result.min_filter = Texture_Filter.NEAREST_MIPMAP_NEAREST;
             case GLTF_Texture_Filter.LINEAR_MIPMAP_NEAREST;
-                result.min_filter = .LINEAR_MIPMAP_NEAREST;
+                result.min_filter = Texture_Filter.LINEAR_MIPMAP_NEAREST;
             case GLTF_Texture_Filter.NEAREST_MIPMAP_LINEAR;
-                result.min_filter = .NEAREST_MIPMAP_LINEAR;
+                result.min_filter = Texture_Filter.NEAREST_MIPMAP_LINEAR;
             case GLTF_Texture_Filter.LINEAR_MIPMAP_LINEAR;
-                result.min_filter = .LINEAR_MIPMAP_LINEAR;
+                result.min_filter = Texture_Filter.LINEAR_MIPMAP_LINEAR;
         }
     }
 

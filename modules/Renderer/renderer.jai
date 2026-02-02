@@ -10,7 +10,7 @@ init :: (
     );
     renderer.default_base_color_texture = create_2D_texture(
         "modules/Renderer/assets/textures/default.png",
-        .BASE_COLOR,
+        Texture_Usage.BASE_COLOR,
     );
 
     glDepthFunc(GL_LESS);

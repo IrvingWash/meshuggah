@@ -76,7 +76,10 @@ convert_gltf_model_data :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data 
         if gltf_mesh.material.base_color_texture_path {
             ok:, texture = table_find(*asset_storage.textures, gltf_mesh.material.base_color_texture_path);
             if !ok {
-                texture = Renderer.create_2D_texture(gltf_mesh.material.base_color_texture_path, .BASE_COLOR);
+                texture = Renderer.create_2D_texture(
+                    gltf_mesh.material.base_color_texture_path,
+                    Renderer.Texture_Usage.BASE_COLOR,
+                );
 
                 table_set(
                     *asset_storage.textures,
