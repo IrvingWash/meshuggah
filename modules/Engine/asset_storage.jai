@@ -86,11 +86,28 @@ convert_gltf_model_data :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data 
             }
         }
 
+        vertices: [..]Renderer.Vertex;
+        array_reserve(*vertices, gltf_mesh.vertices.count);
+        for gltf_vertex: gltf_mesh.vertices {
+            array_add(
+                *vertices,
+                {
+                    position = gltf_vertex.position,
+                    normal = gltf_vertex.normal,
+                    uv = gltf_vertex.uv,
+                },
+            );
+        }
+
+        indices: [..]u32;
+        array_reserve(*indices, gltf_mesh.indices.count);
+        array_add(*indices, ..gltf_mesh.indices);
+
         array_add(
             *model_data.meshes,
             {
-                vertices = cast,force([]Renderer.Vertex, gltf_mesh.vertices), // @Todo refactor this. No cast force, no move
-                indices = gltf_mesh.indices,
+                vertices = vertices,
+                indices = indices,
                 material = {
                     double_sided = gltf_mesh.material.double_sided,
                     base_color_texture = texture,

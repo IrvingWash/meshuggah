@@ -48,8 +48,8 @@ Model_Data :: struct {
 }
 
 Mesh_Data :: struct {
-    vertices: []Vertex;
-    indices:  []u32;
+    vertices: [..]Vertex;
+    indices:  [..]u32;
     material: Material;
 }
 
@@ -85,7 +85,12 @@ destroy_model :: (model: *Model) {
 }
 
 destroy_model_data :: (model_data: *Model_Data) {
+    for mesh: model_data.meshes {
+        array_free(mesh.vertices);
+        array_free(mesh.indices);
+    }
     array_free(model_data.meshes);
+
     array_free(model_data.nodes);
 
     model_data.* = {};
