@@ -26,6 +26,7 @@ init :: (
 }
 
 deinit :: () {
+    deinit(*renderer.batches);
     destroy_shader(*renderer.shader);
     destroy_texture(*renderer.default_base_color_texture);
 }
@@ -38,13 +39,6 @@ begin_frame :: (camera: $T/interface Render_Camera) {
 }
 
 draw :: (model: Model, model_transform: Matrix4) {
-    using gl;
-
-    use_shader(renderer.shader);
-
-    set_uniform(renderer.shader, "uProjectionTransform", renderer.transforms.perspective_projection);
-    set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
-
     for node: model.nodes {
         if node.parent == -1 {
             draw_node(model, cast(u32, it_index), model_transform);
@@ -52,7 +46,48 @@ draw :: (model: Model, model_transform: Matrix4) {
     }
 }
 
-end_frame :: () {}
+end_frame :: () {
+    // Looks more like "end_backbuffer_pass"
+    using gl;
+
+    use_shader(renderer.shader);
+
+    set_uniform(renderer.shader, "uMaterial.baseColorTexture", cast(s32, 0));
+    set_uniform(renderer.shader, "uProjectionTransform", renderer.transforms.perspective_projection);
+    set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
+
+    for batch: renderer.batches {
+        glBindVertexArray(batch.mesh.vao);
+        set_uniform(renderer.shader, "uMaterial.baseColor", batch.mesh.material.base_color);
+
+        if batch.mesh.material.base_color_texture.id != 0 {
+            bind_texture(batch.mesh.material.base_color_texture, 0);
+        } else {
+            bind_texture(renderer.default_base_color_texture);
+        }
+
+        if batch.mesh.material.double_sided {
+            glDisable(GL_CULL_FACE);
+        } else {
+            glEnable(GL_CULL_FACE);
+        }
+
+        for instance: batch.instances {
+            set_uniform(renderer.shader, "uModelTransform", instance.transform);
+
+            glDrawElements(
+                GL_TRIANGLES,
+                cast(GLsizei, batch.mesh.index_count),
+                GL_UNSIGNED_INT,
+                cast(*void, 0),
+            );
+        }
+    }
+
+    unbind_texture();
+
+    table_reset(*renderer.batches);
+}
 
 
 
@@ -70,6 +105,18 @@ Renderer :: struct {
     }
 
     default_base_color_texture: Texture;
+
+    batches: Table(u32, Batch);
+}
+
+Batch :: struct {
+    mesh: Mesh;
+    instances: [..]Instance;
+    instances.allocator = temp;
+}
+
+Instance :: struct {
+    transform: Matrix4;
 }
 
 renderer: Renderer;
@@ -103,42 +150,29 @@ begin_backbuffer_pass :: (clear: bool) {
 }
 
 draw_node :: (model: Model, node_index: u32, parent_world_transform: Matrix4) {
-    using gl;
-
     node := model.nodes[node_index];
 
     world_transform := parent_world_transform * node.local_transform;
 
     if node.mesh_count > 0 {
-        set_uniform(renderer.shader, "uModelTransform", world_transform);
-
         for node.first_mesh..(node.first_mesh + node.mesh_count - 1) {
             mesh := model.meshes[it];
 
-            glBindVertexArray(mesh.vao);
+            instance: Instance = {
+                transform = world_transform,
+            };
 
-            set_uniform(renderer.shader, "uMaterial.baseColor", mesh.material.base_color);
-            set_uniform(renderer.shader, "uMaterial.baseColorTexture", cast(s32, 0));
-
-            if mesh.material.base_color_texture.id != 0 {
-                bind_texture(mesh.material.base_color_texture);
+            batch := table_find_pointer(*renderer.batches, mesh.vao);
+            if batch != null {
+                array_add(*batch.instances, instance);
             } else {
-                bind_texture(renderer.default_base_color_texture);
+                new_batch: Batch = { mesh = mesh };
+
+                array_add(*new_batch.instances, instance);
+
+                // @Todo: we currently use mesh.vao as the key to the table. That sucks
+                table_set(*renderer.batches, mesh.vao, new_batch);
             }
-            defer unbind_texture();
-
-            if mesh.material.double_sided {
-                glDisable(GL_CULL_FACE);
-           } else {
-                glEnable(GL_CULL_FACE);
-           }
-
-            glDrawElements(
-                GL_TRIANGLES,
-                cast(GLsizei, mesh.index_count),
-                GL_UNSIGNED_INT,
-                cast(*void, 0),
-            );
         }
     }
 
@@ -168,3 +202,4 @@ make_view_transform_from_camera :: (camera: $T/interface Render_Camera) -> Matri
 }
 
 #import "Math";
+#import "Hash_Table";
