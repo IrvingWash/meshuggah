@@ -37,7 +37,7 @@ main :: () {
     guy := spawn_guy();
     mccree := spawn_mccree();
 
-    look_at(*fly_camera, mech.position);
+    look_at(*fly_camera, mccree.position);
 
     while !Engine.is_quit_requested() {
         Engine.begin_frame();

@@ -4,8 +4,20 @@
 
 #module_parameters(VALIDATE: bool = false);
 
-Model :: struct {
-    meshes: [..]Mesh_Data; // GLTF primitives
+Model_Data :: struct {
+    nodes:  [..]Node_Data;
+    meshes: [..]Mesh_Data;
+}
+
+Node_Data :: struct {
+    parent:   int = -1;
+    children: [..]u32;
+
+    first_mesh: u32;
+    mesh_count:  u32;
+
+    // Row-major
+    local_transform: Matrix4 = Matrix4_Identity;
 }
 
 Mesh_Data :: struct {
@@ -40,8 +52,8 @@ Texture_Filter :: enum {
     LINEAR_MIPMAP_LINEAR;
 }
 
-load :: (path: string) -> ok: bool, error_message: string, Model {
-    model: Model;
+load :: (path: string) -> ok: bool, error_message: string, Model_Data {
+    model: Model_Data ;
 
     ok, error_message, gltf := parse_gltf_file(path);
     if !ok {
@@ -64,6 +76,8 @@ load :: (path: string) -> ok: bool, error_message: string, Model {
 
     // Parse all the nodes of the scene and put them into `model`
     gltf_scene := gltf.scenes[gltf.scene];
+    array_reserve(*model.nodes, gltf.nodes.count);
+    array_reserve(*model.meshes, get_all_primitives_count(gltf));
     for gltf_node_index: gltf_scene.nodes {
         parse_gltf_node(
             gltf,
@@ -77,13 +91,17 @@ load :: (path: string) -> ok: bool, error_message: string, Model {
     return true, "", model;
 }
 
-release :: (model: *Model) {
+release :: (model: *Model_Data) {
     for mesh: model.meshes {
         array_free(mesh.vertices);
         array_free(mesh.indices);
     }
-
     array_free(model.meshes);
+
+    for node: model.nodes {
+        array_free(node.children);
+    }
+    array_free(model.nodes);
 
     model.* = {};
 }
@@ -95,26 +113,57 @@ release :: (model: *Model) {
 parse_gltf_node :: (
     gltf: GLTF,
     gltf_node_index: int,
-    model: *Model,
+    model: *Model_Data,
     gltf_buffers: [][]u8,
     root_directory: string,
-) {
+    parent_node_index: int = -1,
+) -> u32 {
     gltf_node := gltf.nodes[gltf_node_index];
+
+    node_data: Node_Data = {
+        parent = parent_node_index,
+        first_mesh = cast(u32, model.meshes.count),
+    };
+    {
+        column_major_transform: Matrix4;
+        column_major_transform.floats = gltf_node.matrix;
+        node_data.local_transform = transpose(column_major_transform);
+    }
 
     if gltf_node.mesh != -1 {
         gltf_mesh := gltf.meshes[gltf_node.mesh];
-
         for gltf_primitive: gltf_mesh.primitives {
             array_add(
                 *model.meshes,
-                parse_gltf_primitive(gltf, gltf_primitive, gltf_buffers, root_directory),
+                parse_gltf_primitive(
+                    gltf,
+                    gltf_primitive,
+                    gltf_buffers,
+                    root_directory,
+                ),
             );
+            node_data.mesh_count += 1;
         }
     }
 
+    array_add(
+        *model.nodes,
+        node_data,
+    );
+
+    node_index := model.nodes.count - 1;
+
     for gltf_child: gltf_node.children {
-        parse_gltf_node(gltf, gltf_child, model, gltf_buffers, root_directory);
+        child_index := parse_gltf_node(gltf, gltf_child, model, gltf_buffers, root_directory, node_index);
+
+        array_add(
+            *model.nodes[node_index].children,
+            child_index,
+        );
     }
+
+    // Used as child_index above (recursively and linearly)
+    return cast(u32, node_index);
 }
 
 parse_gltf_primitive :: (
@@ -422,9 +471,18 @@ release_gltf_buffers :: (buffers: [..][]u8) {
     array_free(buffers);
 }
 
+get_all_primitives_count :: (gltf: GLTF) -> u32 {
+    result: u32;
+
+    for gltf_mesh: gltf.meshes {
+        result += cast(u32, gltf_mesh.primitives.count);
+    }
+
+    return result;
+}
+
 #import "Basic";
 #import "Math";
 #import "String";
-#import "Hash_Table";
 
 #load "gltf_parser.jai";

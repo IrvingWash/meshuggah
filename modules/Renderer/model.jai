@@ -1,5 +1,6 @@
 Model :: struct {
     meshes: [..]Mesh;
+    nodes:  [..]Node;
 }
 
 Mesh :: struct {
@@ -10,6 +11,16 @@ Mesh :: struct {
     index_count: u32;
 
     material: Material;
+}
+
+Node :: struct {
+    parent:   int = -1;
+    children: [..]u32;
+
+    first_mesh: u32;
+    mesh_count: u32;
+
+    local_transform: Matrix4;
 }
 
 Material :: struct {
@@ -34,6 +45,7 @@ Vertex_Attribute_Offsets  :: struct {
 
 Model_Data :: struct {
     meshes: [..]Mesh_Data;
+    nodes:  [..]Node;
 }
 
 Mesh_Data :: struct {
@@ -44,6 +56,8 @@ Mesh_Data :: struct {
 
 create_model :: (model_data: Model_Data) -> Model {
     model: Model;
+    array_reserve(*model.meshes, model_data.meshes.count);
+    array_reserve(*model.nodes, model_data.nodes.count);
 
     for mesh_data: model_data.meshes {
         array_add(
@@ -51,6 +65,8 @@ create_model :: (model_data: Model_Data) -> Model {
             create_mesh(mesh_data),
         );
     }
+
+    array_add(*model.nodes, ..model_data.nodes);
 
     return model;
 }
@@ -61,11 +77,17 @@ destroy_model :: (model: *Model) {
     }
     array_free(model.meshes);
 
+    for node: model.nodes {
+        array_free(node.children);
+    }
+    array_free(model.nodes);
+
     model.* = {};
 }
 
 destroy_model_data :: (model_data: *Model_Data) {
     array_free(model_data.meshes);
+    array_free(model_data.nodes);
 
     model_data.* = {};
 }

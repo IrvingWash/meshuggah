@@ -17,6 +17,8 @@ GLTF :: struct {
 };
 
 GLTF_Texture :: struct {
+    name: string;
+
     sampler: int = -1;
     source:  int = -1;
 }
@@ -206,7 +208,11 @@ release_gltf_file :: (gltf: *GLTF) {
     }
     array_free(gltf.buffers);
 
+    for texture: gltf.textures {
+        free(texture.name);
+    }
     array_free(gltf.textures);
+
     array_free(gltf.samplers);
 
     for image: gltf.images {
