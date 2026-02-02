@@ -5,7 +5,7 @@
 #module_parameters(VALIDATE: bool = false);
 
 Model :: struct {
-    meshes: [..]Mesh_Data;
+    meshes: [..]Mesh_Data; // GLTF primitives
 }
 
 Mesh_Data :: struct {
@@ -55,44 +55,26 @@ load :: (path: string) -> ok: bool, error_message: string, Model {
 
     root_directory := path_strip_filename(path);
 
-    ok =, error_message =, buffers := load_buffers(root_directory, gltf.buffers);
+    // Load buffers which contain the actual vertex data
+    ok =, error_message =, gltf_buffers := load_gltf_buffers(root_directory, gltf.buffers);
     if !ok {
         return false, error_message, {};
     }
-    defer release_buffers(buffers);
+    defer release_gltf_buffers(gltf_buffers);
 
-    scene := gltf.scenes[gltf.scene];
-
-    for node_index: scene.nodes {
-        parse_node(gltf, node_index, *model, buffers, root_directory);
+    // Parse all the nodes of the scene and put them into `model`
+    gltf_scene := gltf.scenes[gltf.scene];
+    for gltf_node_index: gltf_scene.nodes {
+        parse_gltf_node(
+            gltf,
+            gltf_node_index,
+            *model,
+            gltf_buffers,
+            root_directory,
+        );
     }
 
     return true, "", model;
-}
-
-parse_node :: (
-    gltf: GLTF,
-    node_index: int,
-    model: *Model,
-    buffers: [][]u8,
-    root_directory: string,
-) {
-    node := gltf.nodes[node_index];
-
-    if node.mesh != -1 {
-        mesh := gltf.meshes[node.mesh];
-
-        for primitive: mesh.primitives {
-            array_add(
-                *model.meshes,
-                parse_primitive(gltf, primitive, buffers, root_directory),
-            );
-        }
-    }
-
-    for child: node.children {
-        parse_node(gltf, child, model, buffers, root_directory);
-    }
 }
 
 release :: (model: *Model) {
@@ -110,19 +92,44 @@ release :: (model: *Model) {
 
 #scope_file
 
-parse_primitive :: (
+parse_gltf_node :: (
     gltf: GLTF,
-    primitive: GLTF_Primitive,
-    buffers: [][]u8,
+    gltf_node_index: int,
+    model: *Model,
+    gltf_buffers: [][]u8,
+    root_directory: string,
+) {
+    gltf_node := gltf.nodes[gltf_node_index];
+
+    if gltf_node.mesh != -1 {
+        gltf_mesh := gltf.meshes[gltf_node.mesh];
+
+        for gltf_primitive: gltf_mesh.primitives {
+            array_add(
+                *model.meshes,
+                parse_gltf_primitive(gltf, gltf_primitive, gltf_buffers, root_directory),
+            );
+        }
+    }
+
+    for gltf_child: gltf_node.children {
+        parse_gltf_node(gltf, gltf_child, model, gltf_buffers, root_directory);
+    }
+}
+
+parse_gltf_primitive :: (
+    gltf: GLTF,
+    gltf_primitive: GLTF_Primitive,
+    gltf_buffers: [][]u8,
     root_directory: string,
 ) -> Mesh_Data {
     mesh_data: Mesh_Data;
 
     {
-        positions := parse_attribute(
+        positions := parse_gltf_attribute(
             gltf,
-            buffers,
-            gltf.accessors[primitive.attributes.POSITION],
+            gltf_buffers,
+            gltf.accessors[gltf_primitive.attributes.POSITION],
             Vector3,
         );
         defer array_free(positions);
@@ -133,11 +140,11 @@ parse_primitive :: (
         }
     }
 
-    if primitive.attributes.NORMAL != -1 {
-        normals := parse_attribute(
+    if gltf_primitive.attributes.NORMAL != -1 {
+        normals := parse_gltf_attribute(
             gltf,
-            buffers,
-            gltf.accessors[primitive.attributes.NORMAL],
+            gltf_buffers,
+            gltf.accessors[gltf_primitive.attributes.NORMAL],
             Vector3,
         );
         defer array_free(normals);
@@ -147,11 +154,11 @@ parse_primitive :: (
         }
     } 
 
-    if primitive.attributes.TEXCOORD_0 != -1 {
-        uvs := parse_attribute(
+    if gltf_primitive.attributes.TEXCOORD_0 != -1 {
+        uvs := parse_gltf_attribute(
             gltf,
-            buffers,
-            gltf.accessors[primitive.attributes.TEXCOORD_0],
+            gltf_buffers,
+            gltf.accessors[gltf_primitive.attributes.TEXCOORD_0],
             Vector2,
         );
         defer array_free(uvs);
@@ -161,19 +168,19 @@ parse_primitive :: (
         }
     }
 
-    if primitive.indices != -1 {
-        mesh_data.indices = parse_indices_attribute(
+    if gltf_primitive.indices != -1 {
+        mesh_data.indices = parse_gltf_indices_attribute(
             gltf,
-            buffers,
-            gltf.accessors[primitive.indices],
+            gltf_buffers,
+            gltf.accessors[gltf_primitive.indices],
             u32,
         );
     }
 
-    if primitive.material != -1 {
-        mesh_data.material = parse_material(
+    if gltf_primitive.material != -1 {
+        mesh_data.material = parse_gltf_material(
             gltf,
-            primitive,
+            gltf_primitive,
             root_directory,
         );
     }
@@ -181,10 +188,10 @@ parse_primitive :: (
     return mesh_data;
 }
 
-parse_material :: (gltf: GLTF, primitive: GLTF_Primitive, root_directory: string) -> Material {
+parse_gltf_material :: (gltf: GLTF, gltf_primitive: GLTF_Primitive, root_directory: string) -> Material {
     result: Material;
 
-    gltf_material := gltf.materials[primitive.material];
+    gltf_material := gltf.materials[gltf_primitive.material];
 
     result.double_sided = gltf_material.double_sided;
     result.base_color.component = gltf_material
@@ -232,37 +239,38 @@ parse_material :: (gltf: GLTF, primitive: GLTF_Primitive, root_directory: string
     return result;
 }
 
-parse_attribute :: (
+parse_gltf_attribute :: (
     gltf: GLTF,
-    buffers: [][]u8,
-    accessor: GLTF_Accessor,
+    gltf_buffers: [][]u8,
+    gltf_accessor: GLTF_Accessor,
     $T: Type,
 ) -> [..]T
 #modify {
     return (T == Vector2 || T == Vector3 || IsScalar(T));
 }
 {
-    buffer_view := gltf.buffer_views[accessor.buffer_view];
-    buffer := buffers[buffer_view.buffer];
+    gltf_buffer_view := gltf.buffer_views[gltf_accessor.buffer_view];
+    gltf_buffer := gltf_buffers[gltf_buffer_view.buffer];
 
-    start_offset := buffer_view.byte_offset + accessor.byte_offset;
-    element_count := accessor.count;
+    start_offset := gltf_buffer_view.byte_offset + gltf_accessor.byte_offset;
+    element_count := gltf_accessor.count;
 
-    component_count := get_accessor_component_count(accessor);
-    component_byte_size := get_accessor_component_byte_size(accessor);
+    component_count := get_accessor_component_count(gltf_accessor);
+    component_byte_size := get_accessor_component_byte_size(gltf_accessor);
 
     element_size := component_count * component_byte_size;
 
-    step := ifx buffer_view.byte_stride != 0
-        then buffer_view.byte_stride
+    step := ifx gltf_buffer_view.byte_stride != 0
+        then gltf_buffer_view.byte_stride
         else element_size;
 
+    // Reinterpreting bytes from the buffer to the passed type. Scary
     result: [..]T;
     array_reserve(*result, element_count);
     for 0..(element_count - 1) {
         byte_index := start_offset + it * step;
 
-        value := cast(*T, *buffer[byte_index]);
+        value := cast(*T, *gltf_buffer[byte_index]);
 
         array_add(*result, value.*);
     }
@@ -270,42 +278,46 @@ parse_attribute :: (
     return result;
 }
 
-parse_indices_attribute :: (
+parse_gltf_indices_attribute :: (
     gltf: GLTF,
-    buffers: [][]u8,
-    accessor: GLTF_Accessor,
+    gltf_buffers: [][]u8,
+    gltf_accessor: GLTF_Accessor,
     $T: Type,
 ) -> [..]T
 #modify {
     return T == u32 || T == u16;
 }
 {
-    assert(accessor.type == GLTF_Accessor_Type.SCALAR, "Expected indices to be scalars, but got %", accessor.type);
+    assert(gltf_accessor.type == GLTF_Accessor_Type.SCALAR, "Expected indices to be scalars, but got %", gltf_accessor.type);
 
     // @Copy_N_Paste from parse_attribute
-    buffer_view := gltf.buffer_views[accessor.buffer_view];
-    buffer := buffers[buffer_view.buffer];
+    gltf_buffer_view := gltf.buffer_views[gltf_accessor.buffer_view];
+    gltf_buffer := gltf_buffers[gltf_buffer_view.buffer];
 
-    start_offset := buffer_view.byte_offset + accessor.byte_offset;
-    element_count := accessor.count;
+    start_offset := gltf_buffer_view.byte_offset + gltf_accessor.byte_offset;
+    element_count := gltf_accessor.count;
 
-    component_count := get_accessor_component_count(accessor);
-    component_byte_size := get_accessor_component_byte_size(accessor);
+    component_count := get_accessor_component_count(gltf_accessor);
+    component_byte_size := get_accessor_component_byte_size(gltf_accessor);
 
     element_size := component_count * component_byte_size;
 
-    step := ifx buffer_view.byte_stride != 0
-        then buffer_view.byte_stride
+    step := ifx gltf_buffer_view.byte_stride != 0
+        then gltf_buffer_view.byte_stride
         else element_size;
 
+    // We need to know the internal type of a single index.
+    // We will cast the bytes to this type
+    // and then cast it again to the desired type T.
+    // This way we can ask for u32 while the actual data is u16
     internal_type: Type;
-    if accessor.component_type == {
+    if gltf_accessor.component_type == {
         case GLTF_Component_Type.U16;
             internal_type = u16;
         case GLTF_Component_Type.U32;
             internal_type = u32;
         case;
-            assert(false, "Expected indices to be either u16 or u32, but got %", accessor.component_type);
+            assert(false, "Expected indices to be either u16 or u32, but got %", gltf_accessor.component_type);
     }
 
     result: [..]T;
@@ -315,10 +327,10 @@ parse_indices_attribute :: (
 
         if internal_type == {
             case u16;
-                value := cast(*u16, *buffer[byte_index]);
+                value := cast(*u16, *gltf_buffer[byte_index]);
                 array_add(*result, cast(T, value.*));
             case u32;
-                value := cast(*u32, *buffer[byte_index]);
+                value := cast(*u32, *gltf_buffer[byte_index]);
                 array_add(*result, cast(T, value.*));
         }
     }
@@ -326,8 +338,8 @@ parse_indices_attribute :: (
     return result;
 }
 
-get_accessor_component_count :: (accessor: GLTF_Accessor) -> u8 {
-    if accessor.type == {
+get_accessor_component_count :: (gltf_accessor: GLTF_Accessor) -> u8 {
+    if gltf_accessor.type == {
         case GLTF_Accessor_Type.SCALAR;
             return 1;
         case GLTF_Accessor_Type.VEC2;
@@ -339,14 +351,14 @@ get_accessor_component_count :: (accessor: GLTF_Accessor) -> u8 {
         case GLTF_Accessor_Type.MAT4;
             return 16;
         case;
-            assert(false, "Unexpected accessor type %", accessor.type);
+            assert(false, "Unexpected accessor type %", gltf_accessor.type);
     }
 
     return 0;
 }
 
-get_accessor_component_byte_size :: (accessor: GLTF_Accessor) -> u8 {
-    if accessor.component_type == {
+get_accessor_component_byte_size :: (gltf_accessor: GLTF_Accessor) -> u8 {
+    if gltf_accessor.component_type == {
         case GLTF_Component_Type.I8; #through;
         case GLTF_Component_Type.U8;
             return 1;
@@ -357,16 +369,19 @@ get_accessor_component_byte_size :: (accessor: GLTF_Accessor) -> u8 {
         case GLTF_Component_Type.F32;
             return 4;
         case;
-            assert(false, "Unexpected accessor component type %", accessor.component_type);
+            assert(false, "Unexpected accessor component type %", gltf_accessor.component_type);
     }
 
     return 0;
 }
 
-// The returned array of buffers is indexed in respect of the incoming gltf_buffers
-load_buffers :: (root_directory: string, gltf_buffers: []GLTF_Buffer) -> ok: bool, error_message: string, buffers: [..][]u8 {
-    loaded_buffers: [..][]u8;
-    array_resize(*loaded_buffers, gltf_buffers.count);
+// The returned array of buffers is indexed in respect of the incoming gltf_buffers (each buffer has the same index, English is hard)
+load_gltf_buffers :: (
+    root_directory: string,
+    gltf_buffers: []GLTF_Buffer
+) -> ok: bool, error_message: string, gltf_buffers: [..][]u8 {
+    loaded_gltf_buffers: [..][]u8;
+    array_resize(*loaded_gltf_buffers, gltf_buffers.count);
 
     for gltf_buffer: gltf_buffers {
         buffer_path := path_join(
@@ -376,23 +391,30 @@ load_buffers :: (root_directory: string, gltf_buffers: []GLTF_Buffer) -> ok: boo
         );
         data, ok := read_entire_file(buffer_path);
         if !ok {
-            release_buffers(loaded_buffers);
-            return false, sprint("Failed to load buffer from %", buffer_path), loaded_buffers;
+            release_gltf_buffers(loaded_gltf_buffers);
+            return false,
+                sprint("Failed to load buffer from %", buffer_path),
+                loaded_gltf_buffers;
         }
 
         bytes: []u8 = cast([]u8, data);
         if bytes.count < gltf_buffer.byte_length {
-            release_buffers(loaded_buffers);
-            return false, sprint("Buffer file contains less bytes (%) than it's specified in metadata (%)", bytes.count, gltf_buffer.byte_length), loaded_buffers;
+            release_gltf_buffers(loaded_gltf_buffers);
+            return false,
+                sprint(
+                    "Buffer file contains less bytes (%) than it's specified in metadata (%)",
+                    bytes.count, gltf_buffer.byte_length
+                ),
+                loaded_gltf_buffers;
         }
 
-        loaded_buffers[it_index] = bytes;
+        loaded_gltf_buffers[it_index] = bytes;
     }
 
-    return true, "", loaded_buffers;
+    return true, "", loaded_gltf_buffers;
 }
 
-release_buffers :: (buffers: [..][]u8) {
+release_gltf_buffers :: (buffers: [..][]u8) {
     for buffer: buffers {
         array_free(buffer);
     }
