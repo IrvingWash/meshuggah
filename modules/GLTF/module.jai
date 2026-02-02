@@ -4,8 +4,19 @@
 
 #module_parameters(VALIDATE: bool = false);
 
-Model :: struct {
-    meshes: [..]Mesh_Data; // GLTF primitives
+Model_Data :: struct {
+    nodes:  [..]Node_Data;
+    meshes: [..]Mesh_Data;
+}
+
+Node_Data :: struct {
+    parent:   int = -1;
+    children: [..]Node_Data;
+
+    first_mesh: u32;
+    mesh_count:  u32;
+
+    transform:  Matrix4 = Matrix4_Identity;
 }
 
 Mesh_Data :: struct {
@@ -40,8 +51,8 @@ Texture_Filter :: enum {
     LINEAR_MIPMAP_LINEAR;
 }
 
-load :: (path: string) -> ok: bool, error_message: string, Model {
-    model: Model;
+load :: (path: string) -> ok: bool, error_message: string, Model_Data {
+    model: Model_Data ;
 
     ok, error_message, gltf := parse_gltf_file(path);
     if !ok {
@@ -77,13 +88,14 @@ load :: (path: string) -> ok: bool, error_message: string, Model {
     return true, "", model;
 }
 
-release :: (model: *Model) {
+release :: (model: *Model_Data) {
     for mesh: model.meshes {
         array_free(mesh.vertices);
         array_free(mesh.indices);
     }
 
     array_free(model.meshes);
+    array_free(model.nodes);
 
     model.* = {};
 }
@@ -95,7 +107,7 @@ release :: (model: *Model) {
 parse_gltf_node :: (
     gltf: GLTF,
     gltf_node_index: int,
-    model: *Model,
+    model: *Model_Data,
     gltf_buffers: [][]u8,
     root_directory: string,
 ) {

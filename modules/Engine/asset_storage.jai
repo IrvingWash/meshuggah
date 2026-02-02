@@ -48,7 +48,7 @@ Asset_Storage :: struct {
 
 asset_storage: Asset_Storage;
 
-convert_gltf_model :: (gltf_model: GLTF.Model) -> Renderer.Model_Data {
+convert_gltf_model :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data {
     model_data: Renderer.Model_Data;
     array_reserve(*model_data.meshes, gltf_model.meshes.count);
 
