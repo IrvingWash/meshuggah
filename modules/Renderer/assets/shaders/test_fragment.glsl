@@ -2,7 +2,8 @@
 
 struct Material
 {
-    sampler2D baseColor;
+    sampler2D baseColorTexture;
+    vec4 baseColor;
 };
 
 in FragmentData
@@ -11,13 +12,11 @@ in FragmentData
     vec2 uv;
 } fragmentData;
 
-uniform vec4 uTint;
-
 uniform Material uMaterial;
 
 out vec4 fragmentColor;
 
 void main()
 {
-    fragmentColor = texture(uMaterial.baseColor, fragmentData.uv) * uTint;
+    fragmentColor = texture(uMaterial.baseColorTexture, fragmentData.uv) * uMaterial.baseColor;
 }

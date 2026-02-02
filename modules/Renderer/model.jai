@@ -24,11 +24,10 @@ Node :: struct {
 }
 
 Material :: struct {
-    tint: Vector4;
-
     double_sided: bool;
 
-    texture: Texture;
+    base_color_texture: Texture;
+    base_color: Vector4;
 }
 
 Vertex :: struct {

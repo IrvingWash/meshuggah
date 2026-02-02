@@ -117,11 +117,11 @@ draw_node :: (model: Model, node_index: u32, parent_world_transform: Matrix4) {
 
             glBindVertexArray(mesh.vao);
 
-            set_uniform(renderer.shader, "uTint", mesh.material.tint);
-            set_uniform(renderer.shader, "uMaterial.baseColor", cast(s32, 0));
+            set_uniform(renderer.shader, "uMaterial.baseColor", mesh.material.base_color);
+            set_uniform(renderer.shader, "uMaterial.baseColorTexture", cast(s32, 0));
 
-            if mesh.material.texture.id != 0 {
-                bind_texture(mesh.material.texture);
+            if mesh.material.base_color_texture.id != 0 {
+                bind_texture(mesh.material.base_color_texture);
             } else {
                 bind_texture(renderer.default_base_color_texture);
             }

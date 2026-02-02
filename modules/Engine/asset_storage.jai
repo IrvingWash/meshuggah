@@ -70,17 +70,17 @@ convert_gltf_model_data :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data 
         );
     }
 
-    for mesh: gltf_model.meshes {
+    for gltf_mesh: gltf_model.meshes {
         texture: Renderer.Texture;
 
-        if mesh.material.base_color_texture_path {
-            ok:, texture = table_find(*asset_storage.textures, mesh.material.base_color_texture_path);
+        if gltf_mesh.material.base_color_texture_path {
+            ok:, texture = table_find(*asset_storage.textures, gltf_mesh.material.base_color_texture_path);
             if !ok {
-                texture = Renderer.create_2D_texture(mesh.material.base_color_texture_path, .BASE_COLOR);
+                texture = Renderer.create_2D_texture(gltf_mesh.material.base_color_texture_path, .BASE_COLOR);
 
                 table_set(
                     *asset_storage.textures,
-                    copy_string(mesh.material.base_color_texture_path),
+                    copy_string(gltf_mesh.material.base_color_texture_path),
                     texture,
                 );
             }
@@ -89,12 +89,12 @@ convert_gltf_model_data :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data 
         array_add(
             *model_data.meshes,
             {
-                vertices = cast,force([]Renderer.Vertex, mesh.vertices),
-                indices = mesh.indices,
+                vertices = cast,force([]Renderer.Vertex, gltf_mesh.vertices), // @Todo refactor this. No cast force, no move
+                indices = gltf_mesh.indices,
                 material = {
-                    tint = mesh.material.base_color,
-                    double_sided = mesh.material.double_sided,
-                    texture = texture,
+                    double_sided = gltf_mesh.material.double_sided,
+                    base_color_texture = texture,
+                    base_color = gltf_mesh.material.base_color,
                 },
             },
         );
