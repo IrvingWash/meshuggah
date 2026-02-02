@@ -35,7 +35,7 @@ main :: () {
     mech := spawn_mech();
     terrain: Terrain;
     guy := spawn_guy();
-    mccree: McCree;
+    mccree := spawn_mccree();
 
     look_at(*fly_camera, mech.position);
 

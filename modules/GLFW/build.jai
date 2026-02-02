@@ -22,12 +22,12 @@ ABSOLUTE_SOURCE_PATH :: #run -> string {
         write_added_strings = false,
     });
 
-    build();
+    build_glfw();
 
     reset_temporary_storage();
 }
 
-build :: () {
+build_glfw :: () {
     // =========================================================================
     // Configure
     // =========================================================================
