@@ -2,6 +2,7 @@ Guy :: struct {
     #as using entity: Entity;
 
     model = "assets/models/guy/guy.gltf";
+    entity.scale = { 0.6, 0.6, 0.6 };
 }
 
 spawn_guy :: () -> Guy {

@@ -21,6 +21,7 @@ in FragmentData
 {
     vec3 normal;
     vec2 uv;
+    vec4 tint;
 } fragmentData;
 
 uniform Material uMaterial;
@@ -42,7 +43,7 @@ void main()
     vec4 texelColor = texture(
         uMaterial.baseColorTexture,
         fragmentData.uv
-    ) * uMaterial.baseColor;
+    ) * uMaterial.baseColor * fragmentData.tint;
 
     vec3 albedo = texelColor.rgb;
     float alpha = texelColor.a;

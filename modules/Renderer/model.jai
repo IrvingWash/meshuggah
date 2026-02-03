@@ -4,9 +4,10 @@ Model :: struct {
 }
 
 Mesh :: struct {
-    vao: u32;
-    vbo: u32;
-    ebo: u32;
+    vao:          u32;
+    vbo:          u32;
+    ebo:          u32;
+    instance_vbo: u32;
 
     index_count: u32;
 
@@ -98,6 +99,15 @@ destroy_model_data :: (model_data: *Model_Data) {
 
 
 
+#scope_module
+
+Instance :: struct {
+    tint: Vector4;
+    transform: Matrix4;
+}
+
+
+
 #scope_file
 
 create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
@@ -111,6 +121,7 @@ create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
     glGenVertexArrays(1, *mesh.vao);
     glGenBuffers(1, *mesh.vbo);
     glGenBuffers(1, *mesh.ebo);
+    glGenBuffers(1, *mesh.instance_vbo);
 
     glBindVertexArray(mesh.vao);
 
@@ -163,10 +174,63 @@ create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
         cast(*void, Vertex_Attribute_Offsets.UV),
     );
 
+    // Instance VBO
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.instance_vbo);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        size_of(Instance),
+        null,
+        GL_DYNAMIC_DRAW,
+    );
+
+    // Tint
+    glEnableVertexAttribArray(3);
+    glVertexAttribDivisor(3, 1);
+    glVertexAttribPointer(
+        3,
+        4,
+        GL_FLOAT,
+        GL_FALSE,
+        size_of(Instance),
+        cast(*void, 0),
+    );
+
+    // Model transform
+    add_matrix4_attribute(4, Instance, "transform");
+
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return mesh;
+}
+
+add_matrix4_attribute :: (
+    start_attribute: u32,
+    $Struct: Type,
+    $member: string,
+) {
+    attribute := start_attribute;
+
+    using gl;
+
+    // Four vectors in a matrix
+    for 0..Matrix4.v.count - 1 {
+        defer attribute += 1;
+
+        glEnableVertexAttribArray(attribute);
+        glVertexAttribDivisor(attribute, 1);
+        glVertexAttribPointer(
+            attribute,
+            4,
+            GL_FLOAT,
+            GL_FALSE,
+            size_of(Struct),
+            cast(
+                *void,
+                offset_of(Struct, member) + it * size_of(Vector4)
+            ),
+        );
+    }
 }
 
 destroy_mesh :: (mesh: *Mesh) {
@@ -175,6 +239,7 @@ destroy_mesh :: (mesh: *Mesh) {
     glDeleteVertexArrays(1, *mesh.vao);
     glDeleteBuffers(1, *mesh.vbo);
     glDeleteBuffers(1, *mesh.ebo);
+    glDeleteBuffers(1, *mesh.instance_vbo);
 
     mesh.* = Mesh.{};
 }

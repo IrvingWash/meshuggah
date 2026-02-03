@@ -35,7 +35,8 @@ main :: () {
     mech := spawn_mech();
     terrain: Terrain;
     guy := spawn_guy();
-    mccree := spawn_mccree();
+    mccree: McCree;
+    evil_mccree: Evil_McCree;
     sun: Engine.Directional_Light = {
         direction = { 0, -1, -1 },
         color = { 1, 0.8, 0.8 },
@@ -56,22 +57,32 @@ main :: () {
         Engine.draw(
             Engine.get_model_from_storage(fairy.model),
             get_entity_transform(fairy),
+            fairy.tint,
         );
         Engine.draw(
             Engine.get_model_from_storage(mech.model),
             get_entity_transform(mech),
+            mech.tint,
         );
         Engine.draw(
             Engine.get_model_from_storage(terrain.model),
             get_entity_transform(terrain),
+            terrain.tint,
         );
         Engine.draw(
             Engine.get_model_from_storage(guy.model),
             get_entity_transform(guy),
+            guy.tint,
         );
         Engine.draw(
             Engine.get_model_from_storage(mccree.model),
             get_entity_transform(mccree),
+            mccree.tint,
+        );
+        Engine.draw(
+            Engine.get_model_from_storage(evil_mccree.model),
+            get_entity_transform(evil_mccree),
+            evil_mccree.tint,
         );
         Engine.end_drawing_frame();
 
