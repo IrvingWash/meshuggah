@@ -38,10 +38,14 @@ begin_frame :: (camera: $T/interface Render_Camera) {
     begin_backbuffer_pass(clear = true);
 }
 
-draw :: (model: Model, model_transform: Matrix4) {
+draw :: (
+    model: Model,
+    model_transform: Matrix4,
+    tint: Vector4 = { 1, 1, 1, 1 },
+) {
     for node: model.nodes {
         if node.parent == -1 {
-            draw_node(model, cast(u32, it_index), model_transform);
+            draw_node(model, cast(u32, it_index), model_transform, tint);
         }
     }
 }
@@ -84,33 +88,55 @@ end_frame :: () {
     );
 
     for batch: renderer.batches {
-        glBindVertexArray(batch.mesh.vao);
-
-        set_uniform(renderer.shader, "uMaterial.baseColor", batch.mesh.material.base_color);
-        set_uniform(renderer.shader, "uMaterial.baseColorTexture", cast(s32, 0));
-
+        // Material
+        set_uniform(
+            renderer.shader,
+            "uMaterial.baseColor",
+            batch.mesh.material.base_color,
+        );
+        set_uniform(
+            renderer.shader,
+            "uMaterial.baseColorTexture",
+            cast(s32, 0),
+        );
         if batch.mesh.material.base_color_texture.id != 0 {
             bind_texture(batch.mesh.material.base_color_texture, 0);
         } else {
             bind_texture(renderer.default_base_color_texture, 0);
         }
-
         if batch.mesh.material.double_sided {
             glDisable(GL_CULL_FACE);
         } else {
             glEnable(GL_CULL_FACE);
         }
 
-        for instance: batch.instances {
-            set_uniform(renderer.shader, "uModelTransform", instance.transform);
+        // Batch allocation
+        batch_size := batch.instances.count * size_of(Instance);
 
-            glDrawElements(
-                GL_TRIANGLES,
-                cast(GLsizei, batch.mesh.index_count),
-                GL_UNSIGNED_INT,
-                cast(*void, 0),
-            );
-        }
+        glBindBuffer(GL_ARRAY_BUFFER, batch.mesh.instance_vbo);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            batch_size,
+            null,
+            GL_DYNAMIC_DRAW,
+        );
+        glBufferSubData(
+            GL_ARRAY_BUFFER,
+            0,
+            batch_size,
+            batch.instances.data,
+        );
+
+        glBindVertexArray(batch.mesh.vao);
+        defer glBindVertexArray(0);
+
+        glDrawElementsInstanced(
+            GL_TRIANGLES,
+            cast(GLsizei, batch.mesh.index_count),
+            GL_UNSIGNED_INT,
+            cast(*void, 0),
+            cast(GLsizei, batch.instances.count),
+        );
     }
 
     unbind_texture();
@@ -177,7 +203,12 @@ begin_backbuffer_pass :: (clear: bool) {
     }
 }
 
-draw_node :: (model: Model, node_index: u32, parent_world_transform: Matrix4) {
+draw_node :: (
+    model: Model,
+    node_index: u32,
+    parent_world_transform: Matrix4,
+    tint: Vector4,
+) {
     node := model.nodes[node_index];
 
     world_transform := parent_world_transform * node.local_transform;
@@ -187,7 +218,8 @@ draw_node :: (model: Model, node_index: u32, parent_world_transform: Matrix4) {
             mesh := model.meshes[it];
 
             instance: Instance = {
-                transform = world_transform,
+                transform = transpose(world_transform),
+                tint = tint,
             };
 
             batch := table_find_pointer(*renderer.batches, mesh.vao);
@@ -205,7 +237,7 @@ draw_node :: (model: Model, node_index: u32, parent_world_transform: Matrix4) {
     }
 
     for child_index: node.children {
-        draw_node(model, child_index, world_transform);
+        draw_node(model, child_index, world_transform, tint);
     }
 }
 

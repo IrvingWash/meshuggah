@@ -2,6 +2,7 @@ Mech :: struct {
     #as using entity: Entity;
 
     model = "assets/models/mech/mech.gltf";
+    entity.scale = { 3, 3, 3 };
 
     speed: float = 10;
     is_controlled: bool = true;

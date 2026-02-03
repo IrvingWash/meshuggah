@@ -9,6 +9,8 @@ Entity :: struct {
 
     model: string;
 
+    tint: Vector4 = { 1, 1, 1, 1 };
+
     flags: Entity_Flags;
 }
 
