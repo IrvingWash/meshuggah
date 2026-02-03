@@ -196,7 +196,7 @@ create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
     );
 
     // Model transform
-    add_matrix_attribute(4, Instance, "transform");
+    add_matrix4_attribute(4, Instance, "transform");
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -204,7 +204,7 @@ create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
     return mesh;
 }
 
-add_matrix_attribute :: (
+add_matrix4_attribute :: (
     start_attribute: u32,
     $Struct: Type,
     $member: string,
@@ -214,7 +214,7 @@ add_matrix_attribute :: (
     using gl;
 
     // Four vectors in a matrix
-    for 0..3 {
+    for 0..Matrix4.v.count - 1 {
         defer attribute += 1;
 
         glEnableVertexAttribArray(attribute);

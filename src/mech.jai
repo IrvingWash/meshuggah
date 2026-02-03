@@ -10,6 +10,7 @@ Mech :: struct {
 
 spawn_mech :: () -> Mech {
     mech: Mech;
+    mech.position = {0, 5, 0 };
 
     set_from_axis_and_angle(*mech.orientation, { 1, 0, 0 }, Engine.deg_to_rad(90));
 
