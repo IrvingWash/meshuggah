@@ -147,10 +147,6 @@ Batch :: struct {
     instances.allocator = temp;
 }
 
-Instance :: struct {
-    transform: Matrix4;
-}
-
 renderer: Renderer;
 
 Render_Camera :: struct {
