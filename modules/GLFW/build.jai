@@ -15,7 +15,6 @@ ABSOLUTE_SOURCE_PATH :: #run -> string {
     PLATFORM_NAME :: "windows";
 }
 
-
 #run {
     set_build_options_dc({
         do_output           = false,
@@ -84,13 +83,11 @@ build_glfw :: () {
         "--build",
         ABSOLUTE_SOURCE_PATH,
     );
-    #if OS == .WINDOWS {
-        array_add(
-            *build_command,
-            "--config",
-            "Release",
-        );
-    }
+    array_add(
+        *build_command,
+        "--config",
+        "Release",
+    );
 
     run_command(
         ..build_command,
