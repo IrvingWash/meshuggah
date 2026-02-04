@@ -12,6 +12,8 @@ Mesh :: struct {
     index_count: u32;
 
     material: Material;
+
+    bounding_sphere: Bounding_Sphere;
 }
 
 Node :: struct {
@@ -52,6 +54,9 @@ Mesh_Data :: struct {
     vertices: [..]Vertex;
     indices:  [..]u32;
     material: Material;
+
+    min_position: Vector3;
+    max_position: Vector3;
 }
 
 create_model :: (model_data: Model_Data) -> Model {
@@ -108,6 +113,13 @@ Instance :: struct {
     normal_transform: Matrix3;
 }
 
+// create_bounding_sphere
+Bounding_Sphere :: struct {
+    center: Vector3;
+    radius: float;
+}
+
+
 
 
 #scope_file
@@ -117,6 +129,8 @@ create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
     mesh.material = mesh_data.material;
 
     mesh.index_count = cast(u32, mesh_data.indices.count);
+
+    mesh.bounding_sphere = create_bounding_sphere(mesh_data.min_position, mesh_data.max_position);
 
     using gl;
 
@@ -251,6 +265,15 @@ destroy_mesh :: (mesh: *Mesh) {
     glDeleteBuffers(1, *mesh.instance_vbo);
 
     mesh.* = Mesh.{};
+}
+
+create_bounding_sphere :: (min_position: Vector3, max_position: Vector3) -> Bounding_Sphere {
+    sphere: Bounding_Sphere;
+
+    sphere.center = (min_position + max_position) / 2;
+    sphere.radius = length(max_position - sphere.center);
+
+    return sphere;
 }
 
 offset_of :: ($T: Type, $member: string) -> int {

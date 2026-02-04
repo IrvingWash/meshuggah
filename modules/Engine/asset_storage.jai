@@ -116,6 +116,8 @@ convert_gltf_model_data :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data 
                     base_color_texture = texture,
                     base_color = gltf_mesh.material.base_color,
                 },
+                min_position = gltf_mesh.min_position,
+                max_position = gltf_mesh.max_position,
             },
         );
     }

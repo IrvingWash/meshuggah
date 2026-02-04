@@ -194,7 +194,8 @@ parse_gltf_primitive :: (
         }
 
         // Min and max positions for bounding volumes
-        if assert(gltf_accessor.min.count == 3 && gltf_accessor.max.count == 3, "Incompatible max/min count in POSITION accessor") {
+        // Expecting 3 components
+        if gltf_accessor.min.count == 3 && gltf_accessor.max.count == 3 {
             mesh_data.min_position = { gltf_accessor.min[0], gltf_accessor.min[1], gltf_accessor.min[2] };
             mesh_data.max_position = { gltf_accessor.max[0], gltf_accessor.max[1], gltf_accessor.max[2] };
         } else {
