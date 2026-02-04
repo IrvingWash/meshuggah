@@ -54,6 +54,9 @@ update_time :: () {
 
     time.simulated_time += time.raw_delta * time.scale;
 
+    timer_ids_to_remove: [..]u32;
+    timer_ids_to_remove.allocator = temp;
+
     for *timer: time.timers {
         if time.simulated_time >= timer.duration + timer.start_time {
             array_add(*time.finished_timers, timer.id);
@@ -61,9 +64,13 @@ update_time :: () {
             if timer.is_interval {
                 timer.start_time += timer.duration;
             } else {
-                clear_timer(timer.id); // @Todo: is it save to remove table elements while iterating the table?
+                array_add(*timer_ids_to_remove, timer.id);
             }
         }
+    }
+
+    for timer_id: timer_ids_to_remove {
+        clear_timer(timer_id);
     }
 }
 
