@@ -1,55 +1,3 @@
-draw_bounding_box :: (
-    aabb: AABB,
-    world_transform: Matrix4,
-    color: Vector4 = { 0, 1, 0, 1 },
-) {
-    corners: [8]Vector3;
-    {
-        using aabb;
-
-        corners[0] = Vector3.{ min.x, min.y, min.z };
-        corners[1] = Vector3.{ max.x, min.y, min.z };
-        corners[2] = Vector3.{ max.x, max.y, min.z };
-        corners[3] = Vector3.{ min.x, max.y, min.z };
-        corners[4] = Vector3.{ min.x, min.y, max.z };
-        corners[5] = Vector3.{ max.x, min.y, max.z };
-        corners[6] = Vector3.{ max.x, max.y, max.z };
-        corners[7] = Vector3.{ min.x, max.y, max.z };
-    }
-
-    for *corner: corners {
-        corner.* = (world_transform * Vector4.{ corner.x, corner.y, corner.z, 1 }).xyz;
-    }
-
-    draw_line(corners[0], corners[1], color);
-    draw_line(corners[1], corners[2], color);
-    draw_line(corners[2], corners[3], color);
-    draw_line(corners[3], corners[0], color);
-    draw_line(corners[4], corners[5], color);
-    draw_line(corners[5], corners[6], color);
-    draw_line(corners[6], corners[7], color);
-    draw_line(corners[7], corners[4], color);
-    draw_line(corners[0], corners[4], color);
-    draw_line(corners[1], corners[5], color);
-    draw_line(corners[2], corners[6], color);
-    draw_line(corners[3], corners[7], color);
-
-}
-
-draw_line :: (
-    a: Vector3,
-    b: Vector3,
-    color: Vector4 = { 0, 1, 0, 1 },
-) {
-    array_add(
-        *debug_renderer.vertices,
-        { a, color },
-        { b, color },
-    );
-}
-
-
-
 #scope_module
 
 init_debug_renderer :: () {
@@ -108,6 +56,56 @@ deinit_debug_renderer :: () {
     array_free(debug_renderer.vertices);
 
     debug_renderer = {};
+}
+
+draw_line :: (
+    a: Vector3,
+    b: Vector3,
+    color: Vector4 = { 0, 1, 0, 1 },
+) {
+    array_add(
+        *debug_renderer.vertices,
+        { a, color },
+        { b, color },
+    );
+}
+
+draw_bounding_box :: (
+    aabb: AABB,
+    world_transform: Matrix4,
+    color: Vector4 = { 0, 1, 0, 1 },
+) {
+    corners: [8]Vector3;
+    {
+        using aabb;
+
+        corners[0] = Vector3.{ min.x, min.y, min.z };
+        corners[1] = Vector3.{ max.x, min.y, min.z };
+        corners[2] = Vector3.{ max.x, max.y, min.z };
+        corners[3] = Vector3.{ min.x, max.y, min.z };
+        corners[4] = Vector3.{ min.x, min.y, max.z };
+        corners[5] = Vector3.{ max.x, min.y, max.z };
+        corners[6] = Vector3.{ max.x, max.y, max.z };
+        corners[7] = Vector3.{ min.x, max.y, max.z };
+    }
+
+    for *corner: corners {
+        corner.* = (world_transform * Vector4.{ corner.x, corner.y, corner.z, 1 }).xyz;
+    }
+
+    draw_line(corners[0], corners[1], color);
+    draw_line(corners[1], corners[2], color);
+    draw_line(corners[2], corners[3], color);
+    draw_line(corners[3], corners[0], color);
+    draw_line(corners[4], corners[5], color);
+    draw_line(corners[5], corners[6], color);
+    draw_line(corners[6], corners[7], color);
+    draw_line(corners[7], corners[4], color);
+    draw_line(corners[0], corners[4], color);
+    draw_line(corners[1], corners[5], color);
+    draw_line(corners[2], corners[6], color);
+    draw_line(corners[3], corners[7], color);
+
 }
 
 start_debug_drawing :: (transforms: Transforms) {
