@@ -1,7 +1,6 @@
 #version 330 core
 
-in vec4 vColor;
-out vec4 FragColor;
+out vec4 fragmendColor;
 
 in FragmentData
 {
@@ -10,5 +9,5 @@ in FragmentData
 
 void main()
 {
-    FragColor = fragmentData.color;
+    fragmendColor = fragmentData.color;
 }
