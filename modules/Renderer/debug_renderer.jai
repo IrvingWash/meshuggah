@@ -124,7 +124,7 @@ begin_debug_pass :: () {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     use_shader(debug_renderer.shader);
-    set_uniform(debug_renderer.shader, "uProjectionTransform", debug_renderer.transforms.perspective_projection);
+    set_uniform(debug_renderer.shader, "uProjectionTransform", debug_renderer.transforms.perspective);
     set_uniform(debug_renderer.shader, "uViewTransform", debug_renderer.transforms.view);
 }
 

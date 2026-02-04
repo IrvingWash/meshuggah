@@ -1,8 +1,8 @@
 #scope_module
 
 Transforms :: struct {
-    perspective_projection: Matrix4;
-    view:                   Matrix4;
+    perspective:     Matrix4;
+    view:            Matrix4;
 }
 
 offset_of :: ($T: Type, $member: string) -> int {

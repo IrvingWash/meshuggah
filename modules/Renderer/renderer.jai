@@ -29,7 +29,7 @@ deinit :: () {
 }
 
 begin_frame :: (camera: $T/interface Render_Camera) {
-    renderer.transforms.perspective_projection = make_perspective_projection_transform_from_camera(camera);
+    renderer.transforms.perspective = make_perspective_projection_transform_from_camera(camera);
     renderer.transforms.view = make_view_transform_from_camera(camera);
 
     #if DEBUG {
@@ -141,7 +141,7 @@ begin_backbuffer_pass :: (clear: bool) {
     set_uniform(
         renderer.shader,
         "uProjectionTransform",
-        renderer.transforms.perspective_projection,
+        renderer.transforms.perspective,
     );
     set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
 
