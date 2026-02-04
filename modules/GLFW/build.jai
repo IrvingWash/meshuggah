@@ -7,14 +7,16 @@ ABSOLUTE_SOURCE_PATH :: #run -> string {
     return get_absolute_path("glfw");
 }
 
-#if OS == .MACOS {
-    PLATFORM_NAME :: "macos";
-} else #if OS == .LINUX {
-    PLATFORM_NAME :: "linux";
-} else #if OS == .WINDOWS {
-    PLATFORM_NAME :: "windows";
-}
+CMAKE_GENERATION_DIR :: ".cmake";
 
+#if OS == {
+    case .MACOS;
+        PLATFORM_NAME :: "macos";
+    case .LINUX;
+        PLATFORM_NAME :: "linux";
+    case .WINDOWS;
+        PLATFORM_NAME :: "windows";
+}
 
 #run {
     set_build_options_dc({
@@ -32,20 +34,28 @@ build_glfw :: () {
     // Configure
     // =========================================================================
     config_command: [..]string;
-    defer array_free(config_command);
+    config_command.allocator = temp;
 
     ok := make_directory_if_it_does_not_exist(PLATFORM_NAME);
     if !ok {
         log_error("Failed to create binary directory");
         return;
     }
+
     absolute_binary_path := get_absolute_path(PLATFORM_NAME);
+    cmake_generation_absolute_path := tprint("%%", #filepath, CMAKE_GENERATION_DIR);
+
+    ok = make_directory_if_it_does_not_exist(cmake_generation_absolute_path);
+    if !ok {
+        log_error("Failed to create directory for cmake generated files");
+        return;
+    }
 
     array_add(
         *config_command,
         "cmake",
         ABSOLUTE_SOURCE_PATH,
-        tprint("-B %", ABSOLUTE_SOURCE_PATH),
+        tprint("-B %", cmake_generation_absolute_path),
         tprint("-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=%", absolute_binary_path),
         "-DBUILD_SHARED_LIBS=OFF",
         "-DGLFW_LIBRARY_TYPE=STATIC",
@@ -77,20 +87,15 @@ build_glfw :: () {
     // Build
     // =====================================================================
     build_command: [..]string;
-    defer array_free(build_command);
+    build_command.allocator = temp;
     array_add(
         *build_command,
         "cmake",
         "--build",
-        ABSOLUTE_SOURCE_PATH,
+        cmake_generation_absolute_path,
+        "--config",
+        "Release",
     );
-    #if OS == .WINDOWS {
-        array_add(
-            *build_command,
-            "--config",
-            "Release",
-        );
-    }
 
     run_command(
         ..build_command,
