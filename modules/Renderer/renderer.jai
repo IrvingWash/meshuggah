@@ -13,19 +13,16 @@ init :: (
         Texture_Usage.BASE_COLOR,
     );
 
-    glDepthFunc(GL_LESS);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearDepth(1);
-    glFrontFace(GL_CCW);
-    glCullFace(GL_BACK);
-
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_FRAMEBUFFER_SRGB);
+    #if DEBUG {
+        init_debug_renderer();
+    }
 }
 
 deinit :: () {
+    #if DEBUG {
+        deinit_debug_renderer();
+    }
+
     deinit(*renderer.batches);
     destroy_shader(*renderer.shader);
     destroy_texture(*renderer.default_base_color_texture);
@@ -35,7 +32,9 @@ begin_frame :: (camera: $T/interface Render_Camera) {
     renderer.transforms.perspective_projection = make_perspective_projection_transform_from_camera(camera);
     renderer.transforms.view = make_view_transform_from_camera(camera);
 
-    begin_backbuffer_pass(clear = true);
+    #if DEBUG {
+        start_debug_drawing(renderer.transforms);
+    }
 }
 
 draw :: (
@@ -59,81 +58,13 @@ set_directional_light :: (light: Directional_Light) {
 }
 
 end_frame :: () {
-    // Looks more like "end_backbuffer_pass"
-    using gl;
+    begin_backbuffer_pass(clear = true);
+    finish_backbuffer_pass();
 
-    use_shader(renderer.shader);
-
-    set_uniform(
-        renderer.shader,
-        "uProjectionTransform",
-        renderer.transforms.perspective_projection,
-    );
-    set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
-
-    set_uniform(
-        renderer.shader,
-        "uAmbientLight.color",
-        renderer.ambient_light.color,
-    );
-    set_uniform(
-        renderer.shader,
-        "uDirectionalLight.direction",
-        renderer.directional_light.direction,
-    );
-    set_uniform(
-        renderer.shader,
-        "uDirectionalLight.color",
-        renderer.directional_light.color,
-    );
-
-    for batch: renderer.batches {
-        // Material
-        set_uniform(
-            renderer.shader,
-            "uMaterial.baseColor",
-            batch.mesh.material.base_color,
-        );
-        set_uniform(
-            renderer.shader,
-            "uMaterial.baseColorTexture",
-            cast(s32, 0),
-        );
-        if batch.mesh.material.base_color_texture.id != 0 {
-            bind_texture(batch.mesh.material.base_color_texture, 0);
-        } else {
-            bind_texture(renderer.default_base_color_texture, 0);
-        }
-        if batch.mesh.material.double_sided {
-            glDisable(GL_CULL_FACE);
-        } else {
-            glEnable(GL_CULL_FACE);
-        }
-
-        // Batch allocation
-        batch_size := batch.instances.count * size_of(Instance);
-
-        glBindBuffer(GL_ARRAY_BUFFER, batch.mesh.instance_vbo);
-        glBufferData(
-            GL_ARRAY_BUFFER,
-            batch_size,
-            batch.instances.data,
-            GL_DYNAMIC_DRAW,
-        );
-
-        glBindVertexArray(batch.mesh.vao);
-        defer glBindVertexArray(0);
-
-        glDrawElementsInstanced(
-            GL_TRIANGLES,
-            cast(GLsizei, batch.mesh.index_count),
-            GL_UNSIGNED_INT,
-            cast(*void, 0),
-            cast(GLsizei, batch.instances.count),
-        );
+    #if DEBUG {
+        begin_debug_pass();
+        end_debug_pass();
     }
-
-    unbind_texture();
 
     table_reset(*renderer.batches);
 }
@@ -148,10 +79,7 @@ Renderer :: struct {
 
     get_framebuffer_size: () -> (u32, u32);
 
-    transforms: struct {
-        perspective_projection: Matrix4;
-        view:                   Matrix4;
-    }
+    transforms: Transforms;
 
     default_base_color_texture: Texture;
 
@@ -184,6 +112,18 @@ Render_Camera :: struct {
 begin_backbuffer_pass :: (clear: bool) {
     using gl;
 
+    glDepthFunc(GL_LESS);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearDepth(1);
+    glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
+
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_FRAMEBUFFER_SRGB);
+    glDepthMask(GL_TRUE);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     width, height := renderer.get_framebuffer_size();
     glViewport(0, 0, width, height);
@@ -195,6 +135,85 @@ begin_backbuffer_pass :: (clear: bool) {
         }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
+
+    use_shader(renderer.shader);
+
+    set_uniform(
+        renderer.shader,
+        "uProjectionTransform",
+        renderer.transforms.perspective_projection,
+    );
+    set_uniform(renderer.shader, "uViewTransform", renderer.transforms.view);
+
+    set_uniform(
+        renderer.shader,
+        "uAmbientLight.color",
+        renderer.ambient_light.color,
+    );
+    set_uniform(
+        renderer.shader,
+        "uDirectionalLight.direction",
+        renderer.directional_light.direction,
+    );
+    set_uniform(
+        renderer.shader,
+        "uDirectionalLight.color",
+        renderer.directional_light.color,
+    );
+}
+
+finish_backbuffer_pass :: () {
+    using gl;
+
+    for batch: renderer.batches {
+        // Material
+        set_uniform(
+            renderer.shader,
+            "uMaterial.baseColor",
+            batch.mesh.material.base_color,
+        );
+        set_uniform(
+            renderer.shader,
+            "uMaterial.baseColorTexture",
+            cast(s32, 0),
+        );
+        if batch.mesh.material.base_color_texture.id != 0 {
+            bind_texture(batch.mesh.material.base_color_texture, 0);
+        } else {
+            bind_texture(renderer.default_base_color_texture, 0);
+        }
+        if batch.mesh.material.double_sided {
+            glDisable(GL_CULL_FACE);
+        } else {
+            glEnable(GL_CULL_FACE);
+        }
+
+        glBindVertexArray(batch.mesh.vao);
+
+        // Batch allocation
+        batch_size := batch.instances.count * size_of(Instance);
+
+        glBindBuffer(GL_ARRAY_BUFFER, batch.mesh.instance_vbo);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            batch_size,
+            batch.instances.data,
+            GL_DYNAMIC_DRAW,
+        );
+
+        glDrawElementsInstanced(
+            GL_TRIANGLES,
+            cast(GLsizei, batch.mesh.index_count),
+            GL_UNSIGNED_INT,
+            cast(*void, 0),
+            cast(GLsizei, batch.instances.count),
+        );
+
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    unbind_texture();
 }
 
 draw_node :: (
@@ -229,6 +248,10 @@ draw_node :: (
 
                 // @Todo: we currently use mesh.vao as the key to the table. That sucks
                 table_set(*renderer.batches, mesh.vao, new_batch);
+            }
+
+            #if DEBUG {
+                draw_aabb(mesh.aabb, world_transform);
             }
         }
     }

@@ -5,3 +5,13 @@
 #load "shader.jai";
 #load "texture.jai";
 #load "light.jai";
+
+#if DEBUG {
+    #load "debug_renderer.jai";
+}
+
+
+
+#scope_module
+
+#load "utils.jai";

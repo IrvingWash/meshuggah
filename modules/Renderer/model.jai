@@ -286,16 +286,5 @@ create_bounding_sphere :: (min_position: Vector3, max_position: Vector3) -> Boun
     return sphere;
 }
 
-offset_of :: ($T: Type, $member: string) -> int {
-    for type_info(T).members {
-        if it.name == member{
-            return it.offset_in_bytes;
-        }
-    }
-
-    assert(false, "Type '%' does not have member '%'", T, member);
-    return -1;
-}
-
 #import "GL";
 #import "Math";

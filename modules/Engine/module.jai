@@ -37,6 +37,11 @@ draw                  :: Renderer.draw;
 set_directional_light :: Renderer.set_directional_light;
 set_ambient_light     :: Renderer.set_ambient_light;
 
+#if DEBUG {
+    draw_aabb :: Renderer.draw_aabb;
+    draw_line :: Renderer.draw_line;
+}
+
 get_model_from_storage :: get_model;
 
 
