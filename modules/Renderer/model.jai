@@ -13,7 +13,7 @@ Mesh :: struct {
 
     material: Material;
 
-    bounding_sphere: Bounding_Sphere;
+    bounding_sphere: Bounding_Sphere; // @Todo: Unused!
     aabb:            AABB;
 }
 
