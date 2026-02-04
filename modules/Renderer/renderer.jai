@@ -117,14 +117,8 @@ end_frame :: () {
         glBufferData(
             GL_ARRAY_BUFFER,
             batch_size,
-            null,
-            GL_DYNAMIC_DRAW,
-        );
-        glBufferSubData(
-            GL_ARRAY_BUFFER,
-            0,
-            batch_size,
             batch.instances.data,
+            GL_DYNAMIC_DRAW,
         );
 
         glBindVertexArray(batch.mesh.vao);
@@ -216,10 +210,13 @@ draw_node :: (
     if node.mesh_count > 0 {
         for node.first_mesh..(node.first_mesh + node.mesh_count - 1) {
             mesh := model.meshes[it];
+            ok, normal_transform := inverse(make_matrix3(world_transform), epsilon = 0.00001);
+            assert(ok, "Failed to inverse a matrix");
 
             instance: Instance = {
-                transform = transpose(world_transform),
                 tint = tint,
+                transform = transpose(world_transform),
+                normal_transform = normal_transform, // Not transposing as we would need to transpose again in the shader
             };
 
             batch := table_find_pointer(*renderer.batches, mesh.vao);

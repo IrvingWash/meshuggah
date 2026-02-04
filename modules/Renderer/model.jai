@@ -103,7 +103,9 @@ destroy_model_data :: (model_data: *Model_Data) {
 
 Instance :: struct {
     tint: Vector4;
-    transform: Matrix4;
+
+    transform:        Matrix4;
+    normal_transform: Matrix3;
 }
 
 
@@ -196,7 +198,10 @@ create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
     );
 
     // Model transform
-    add_matrix4_attribute(4, Instance, "transform");
+    add_matrix_attribute(4, Instance, "transform", Matrix4);
+
+    // Normal transform
+    add_matrix_attribute(8, Instance, "normal_transform", Matrix3);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -204,30 +209,34 @@ create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
     return mesh;
 }
 
-add_matrix4_attribute :: (
+add_matrix_attribute :: (
     start_attribute: u32,
     $Struct: Type,
     $member: string,
-) {
+    $Matrix_type: Type,
+)
+#modify {
+    return Matrix_type == Matrix4 || Matrix_type == Matrix3;
+}
+{
     attribute := start_attribute;
 
     using gl;
 
-    // Four vectors in a matrix
-    for 0..Matrix4.v.count - 1 {
+    for 0..Matrix_type.v.count - 1 {
         defer attribute += 1;
 
         glEnableVertexAttribArray(attribute);
         glVertexAttribDivisor(attribute, 1);
         glVertexAttribPointer(
             attribute,
-            4,
+            Matrix_type.Row_Type.component.count,
             GL_FLOAT,
             GL_FALSE,
             size_of(Struct),
             cast(
                 *void,
-                offset_of(Struct, member) + it * size_of(Vector4)
+                offset_of(Struct, member) + it * size_of(Matrix_type.Row_Type)
             ),
         );
     }

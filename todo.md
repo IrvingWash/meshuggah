@@ -1,2 +1,8 @@
+- [ ] Compute normal matrix directly
+- [ ] Use orphaning
+- [ ] Grow the buffer data only when needed
+- [ ] Fix timer removal - don't clear in the loop
+- [ ] Use min/mag filter from GLTF
+- [ ] Add frustum culling
 - [ ] Logger
-- [ ] Instancing
+- [x] Instancing

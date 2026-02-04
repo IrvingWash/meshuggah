@@ -5,6 +5,7 @@ layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aUV;
 layout (location = 3) in vec4 aTint;
 layout (location = 4) in mat4 aModelTransform;
+layout (location = 8) in mat3 aNormalTransform;
 
 uniform mat4 uProjectionTransform;
 uniform mat4 uViewTransform;
@@ -22,7 +23,7 @@ void main()
 
     gl_Position = uProjectionTransform * uViewTransform * worldPosition;
 
-    fragmentData.normal = transpose(inverse(mat3(aModelTransform))) * aNormal; // @Todo send normal transform into shader
+    fragmentData.normal = aNormalTransform * aNormal;
     fragmentData.uv = aUV;
     fragmentData.tint = aTint;
 }
