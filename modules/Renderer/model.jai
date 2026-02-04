@@ -14,6 +14,7 @@ Mesh :: struct {
     material: Material;
 
     bounding_sphere: Bounding_Sphere;
+    aabb:            AABB;
 }
 
 Node :: struct {
@@ -119,6 +120,11 @@ Bounding_Sphere :: struct {
     radius: float;
 }
 
+// create_aabb
+AABB :: struct {
+    min: Vector3;
+    max: Vector3;
+}
 
 
 
@@ -131,6 +137,10 @@ create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
     mesh.index_count = cast(u32, mesh_data.indices.count);
 
     mesh.bounding_sphere = create_bounding_sphere(mesh_data.min_position, mesh_data.max_position);
+    mesh.aabb = {
+        min = mesh_data.min_position,
+        max = mesh_data.max_position,
+    };
 
     using gl;
 

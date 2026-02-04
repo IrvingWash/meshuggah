@@ -1,5 +1,4 @@
 - [ ] Add comments for craete_<struct_name> procs on structs
-- [ ] Use build_cpp for building glfw
 - [ ] Review all symbol scopes. Prefix intenal things with "_"
 - [ ] Compute normal matrix directly
 - [ ] Use orphaning
