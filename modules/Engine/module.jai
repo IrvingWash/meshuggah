@@ -40,6 +40,7 @@ set_ambient_light     :: Renderer.set_ambient_light;
 get_model_from_storage :: get_model;
 
 
+
 #scope_file
 
 Window :: #import "Window";

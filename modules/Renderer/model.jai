@@ -12,6 +12,9 @@ Mesh :: struct {
     index_count: u32;
 
     material: Material;
+
+    bounding_sphere: Bounding_Sphere;
+    aabb:            AABB;
 }
 
 Node :: struct {
@@ -52,6 +55,9 @@ Mesh_Data :: struct {
     vertices: [..]Vertex;
     indices:  [..]u32;
     material: Material;
+
+    min_position: Vector3;
+    max_position: Vector3;
 }
 
 create_model :: (model_data: Model_Data) -> Model {
@@ -108,6 +114,18 @@ Instance :: struct {
     normal_transform: Matrix3;
 }
 
+// create_bounding_sphere
+Bounding_Sphere :: struct {
+    center: Vector3;
+    radius: float;
+}
+
+// create_aabb
+AABB :: struct {
+    min: Vector3;
+    max: Vector3;
+}
+
 
 
 #scope_file
@@ -117,6 +135,12 @@ create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
     mesh.material = mesh_data.material;
 
     mesh.index_count = cast(u32, mesh_data.indices.count);
+
+    mesh.bounding_sphere = create_bounding_sphere(mesh_data.min_position, mesh_data.max_position);
+    mesh.aabb = {
+        min = mesh_data.min_position,
+        max = mesh_data.max_position,
+    };
 
     using gl;
 
@@ -253,15 +277,13 @@ destroy_mesh :: (mesh: *Mesh) {
     mesh.* = Mesh.{};
 }
 
-offset_of :: ($T: Type, $member: string) -> int {
-    for type_info(T).members {
-        if it.name == member{
-            return it.offset_in_bytes;
-        }
-    }
+create_bounding_sphere :: (min_position: Vector3, max_position: Vector3) -> Bounding_Sphere {
+    sphere: Bounding_Sphere;
 
-    assert(false, "Type '%' does not have member '%'", T, member);
-    return -1;
+    sphere.center = (min_position + max_position) / 2;
+    sphere.radius = length(max_position - sphere.center);
+
+    return sphere;
 }
 
 #import "GL";

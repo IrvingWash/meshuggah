@@ -24,6 +24,8 @@ Mesh_Data :: struct {
     vertices: [..]Vertex;
     indices:  [..]u32;
     material: Material;
+    min_position: Vector3;
+    max_position: Vector3;
 }
 
 Vertex :: struct {
@@ -176,10 +178,12 @@ parse_gltf_primitive :: (
     mesh_data: Mesh_Data;
 
     {
+        gltf_accessor := gltf.accessors[gltf_primitive.attributes.POSITION];
+
         positions := parse_gltf_attribute(
             gltf,
             gltf_buffers,
-            gltf.accessors[gltf_primitive.attributes.POSITION],
+            gltf_accessor,
             Vector3,
         );
         defer array_free(positions);
@@ -187,6 +191,21 @@ parse_gltf_primitive :: (
         array_resize(*mesh_data.vertices, positions.count);
         for position: positions {
             mesh_data.vertices[it_index].position = position;
+        }
+
+        // Min and max positions for bounding volumes
+        // Expecting 3 components
+        if gltf_accessor.min.count == 3 && gltf_accessor.max.count == 3 {
+            mesh_data.min_position = { gltf_accessor.min[0], gltf_accessor.min[1], gltf_accessor.min[2] };
+            mesh_data.max_position = { gltf_accessor.max[0], gltf_accessor.max[1], gltf_accessor.max[2] };
+        } else {
+            mesh_data.min_position = { FLOAT32_INFINITY, FLOAT32_INFINITY, FLOAT32_INFINITY };
+            mesh_data.max_position = { -FLOAT32_INFINITY, -FLOAT32_INFINITY, -FLOAT32_INFINITY };
+
+            for position: positions {
+                mesh_data.min_position = min(mesh_data.min_position, position);
+                mesh_data.max_position = max(mesh_data.max_position, position);
+            }
         }
     }
 
