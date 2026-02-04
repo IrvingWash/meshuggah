@@ -1,4 +1,4 @@
-draw_aabb :: (
+draw_bounding_box :: (
     aabb: AABB,
     world_transform: Matrix4,
     color: Vector4 = { 0, 1, 0, 1 },

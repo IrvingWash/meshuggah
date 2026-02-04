@@ -251,7 +251,7 @@ draw_node :: (
             }
 
             #if DEBUG {
-                draw_aabb(mesh.aabb, world_transform);
+                draw_bounding_box(mesh.aabb, world_transform);
             }
         }
     }
