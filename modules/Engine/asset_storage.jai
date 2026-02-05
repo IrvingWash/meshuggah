@@ -31,17 +31,21 @@ get_model_from_asset_storage :: (path: string) -> Model_Handle {
 
         array_add(*asset_storage.model_storage.models, model);
 
-        model_handle = table_set(
+        model_handle = cast(Model_Handle, asset_storage.model_storage.models.count - 1);
+
+        table_set(
             *asset_storage.model_storage.handles,
             copy_string(absolute_path),
-            cast(Model_Handle, asset_storage.model_storage.models.count - 1),
-        ).*;
+            model_handle,
+        );
     }
 
     return model_handle;
 }
 
 resolve_asset_storage_model :: (handle: Model_Handle) -> *Renderer.Model {
+    assert(handle < cast,no_check(Model_Handle, asset_storage.model_storage.models.count));
+
     return *asset_storage.model_storage.models[handle];
 }
 
