@@ -1,6 +1,16 @@
 Model :: struct {
-    meshes: [..]Mesh;
     nodes:  [..]Node;
+    meshes: [..]Mesh;
+}
+
+Node :: struct {
+    parent:   int = -1;
+    children: [..]u32;
+
+    first_mesh: u32;
+    mesh_count: u32;
+
+    local_transform: Matrix4;
 }
 
 Mesh :: struct {
@@ -15,16 +25,6 @@ Mesh :: struct {
 
     bounding_sphere: Bounding_Sphere; // @Todo: Unused!
     aabb:            AABB;
-}
-
-Node :: struct {
-    parent:   int = -1;
-    children: [..]u32;
-
-    first_mesh: u32;
-    mesh_count: u32;
-
-    local_transform: Matrix4;
 }
 
 Material :: struct {
@@ -49,15 +49,15 @@ Vertex_Attribute_Offsets  :: struct {
 Model_Data :: struct {
     meshes: [..]Mesh_Data;
     nodes:  [..]Node;
-}
 
-Mesh_Data :: struct {
-    vertices: [..]Vertex;
-    indices:  [..]u32;
-    material: Material;
+    Mesh_Data :: struct {
+        vertices: [..]Vertex;
+        indices:  [..]u32;
+        material: Material;
 
-    min_position: Vector3;
-    max_position: Vector3;
+        min_position: Vector3;
+        max_position: Vector3;
+    }
 }
 
 create_model :: (model_data: Model_Data) -> Model {
@@ -92,9 +92,9 @@ destroy_model :: (model: *Model) {
 }
 
 destroy_model_data :: (model_data: *Model_Data) {
-    for mesh: model_data.meshes {
-        array_free(mesh.vertices);
-        array_free(mesh.indices);
+    for mesh_data: model_data.meshes {
+        array_free(mesh_data.vertices);
+        array_free(mesh_data.indices);
     }
     array_free(model_data.meshes);
 
@@ -130,7 +130,7 @@ AABB :: struct {
 
 #scope_file
 
-create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
+create_mesh :: (mesh_data: Model_Data.Mesh_Data) -> Mesh {
     mesh: Mesh;
     mesh.material = mesh_data.material;
 
@@ -233,6 +233,17 @@ create_mesh :: (mesh_data: Mesh_Data) -> Mesh {
     return mesh;
 }
 
+destroy_mesh :: (mesh: *Mesh) {
+    using gl;
+
+    glDeleteVertexArrays(1, *mesh.vao);
+    glDeleteBuffers(1, *mesh.vbo);
+    glDeleteBuffers(1, *mesh.ebo);
+    glDeleteBuffers(1, *mesh.instance_vbo);
+
+    mesh.* = Mesh.{};
+}
+
 add_matrix_attribute :: (
     start_attribute: u32,
     $Struct: Type,
@@ -264,17 +275,6 @@ add_matrix_attribute :: (
             ),
         );
     }
-}
-
-destroy_mesh :: (mesh: *Mesh) {
-    using gl;
-
-    glDeleteVertexArrays(1, *mesh.vao);
-    glDeleteBuffers(1, *mesh.vbo);
-    glDeleteBuffers(1, *mesh.ebo);
-    glDeleteBuffers(1, *mesh.instance_vbo);
-
-    mesh.* = Mesh.{};
 }
 
 create_bounding_sphere :: (min_position: Vector3, max_position: Vector3) -> Bounding_Sphere {
