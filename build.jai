@@ -87,7 +87,7 @@ build :: (build_options_dc: Build_Options, config: Config) -> ok: bool, error_me
         build_options.output_path = output_path;
         build_options.intermediate_path = output_path;
         #if OS == .MACOS {
-            build_options.minimum_os_version = { major = 26, minor = 0 };
+            build_options.minimum_os_version = { major = 14, minor = 0 };
         }
 
         set_optimization(*build_options, config.optimization_type);
