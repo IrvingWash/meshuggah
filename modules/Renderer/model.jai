@@ -114,13 +114,11 @@ Instance :: struct {
     normal_transform: Matrix3;
 }
 
-// create_bounding_sphere
 Bounding_Sphere :: struct {
     center: Vector3;
     radius: float;
 }
 
-// create_aabb
 AABB :: struct {
     min: Vector3;
     max: Vector3;
