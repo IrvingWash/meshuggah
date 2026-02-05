@@ -37,8 +37,6 @@ draw                  :: Renderer.draw;
 set_directional_light :: Renderer.set_directional_light;
 set_ambient_light     :: Renderer.set_ambient_light;
 
-get_model_from_storage :: get_model;
-
 
 
 #scope_module

@@ -30,12 +30,12 @@ main :: () {
 
     fly_camera := create_fly_camera({ -10, 1, 9 });
 
-    fairy: Fairy;
+    fairy := spawn_fairy();
     mech := spawn_mech();
-    terrain: Terrain;
+    terrain := spawn_terrain();
     guy := spawn_guy();
-    mccree: McCree;
-    evil_mccree: Evil_McCree;
+    mccree := spawn_mccree();
+    evil_mccree := spawn_evil_mccree();
     sun: Engine.Directional_Light = {
         direction = { 0, -1, -1 },
         color = { 1, 0.8, 0.8 },
@@ -54,32 +54,32 @@ main :: () {
         Engine.set_directional_light(sun);
         Engine.set_ambient_light({ 0.1, 0, 0 });
         Engine.draw(
-            Engine.get_model_from_storage(fairy.model),
+            Engine.resolve_asset_storage_model(fairy.model),
             get_entity_transform(fairy),
             fairy.tint,
         );
         Engine.draw(
-            Engine.get_model_from_storage(mech.model),
+            Engine.resolve_asset_storage_model(mech.model),
             get_entity_transform(mech),
             mech.tint,
         );
         Engine.draw(
-            Engine.get_model_from_storage(terrain.model),
+            Engine.resolve_asset_storage_model(terrain.model),
             get_entity_transform(terrain),
             terrain.tint,
         );
         Engine.draw(
-            Engine.get_model_from_storage(guy.model),
+            Engine.resolve_asset_storage_model(guy.model),
             get_entity_transform(guy),
             guy.tint,
         );
         Engine.draw(
-            Engine.get_model_from_storage(mccree.model),
+            Engine.resolve_asset_storage_model(mccree.model),
             get_entity_transform(mccree),
             mccree.tint,
         );
         Engine.draw(
-            Engine.get_model_from_storage(evil_mccree.model),
+            Engine.resolve_asset_storage_model(evil_mccree.model),
             get_entity_transform(evil_mccree),
             evil_mccree.tint,
         );

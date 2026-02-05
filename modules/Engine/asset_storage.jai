@@ -1,11 +1,9 @@
+Model_Handle :: #type,distinct u32;
+
 init_asset_storage :: () {}
 
 deinit_asset_storage :: () {
-    for *model, path: asset_storage.models {
-        free(path);
-        Renderer.destroy_model(model);
-    }
-    deinit(*asset_storage.models);
+    destroy_model_storage(*asset_storage.model_storage);
 
     for *texture, path: asset_storage.textures {
         free(path);
@@ -16,11 +14,11 @@ deinit_asset_storage :: () {
     asset_storage = {};
 }
 
-get_model :: (path: string) -> Renderer.Model {
+get_model_from_asset_storage :: (path: string) -> Model_Handle {
     absolute_path, ok := get_absolute_path(path,, temp);
     assert(ok, "Failed to get absolute path for %", path);
 
-    ok =, model := table_find(*asset_storage.models, absolute_path);
+    ok =, model_handle := table_find(*asset_storage.model_storage.handles, absolute_path);
     if !ok {
         ok =, error_message, gltf_model_data := GLTF.load(absolute_path);
         assert(ok, error_message);
@@ -29,12 +27,22 @@ get_model :: (path: string) -> Renderer.Model {
         model_data := convert_gltf_model_data(gltf_model_data);
         defer Renderer.destroy_model_data(*model_data);
 
-        model = Renderer.create_model(model_data);
+        model := Renderer.create_model(model_data);
 
-        table_set(*asset_storage.models, copy_string(absolute_path), model);
+        array_add(*asset_storage.model_storage.models, model);
+
+        model_handle = table_set(
+            *asset_storage.model_storage.handles,
+            copy_string(absolute_path),
+            cast(Model_Handle, asset_storage.model_storage.models.count - 1),
+        ).*;
     }
 
-    return model;
+    return model_handle;
+}
+
+resolve_asset_storage_model :: (handle: Model_Handle) -> *Renderer.Model {
+    return *asset_storage.model_storage.models[handle];
 }
 
 
@@ -42,11 +50,30 @@ get_model :: (path: string) -> Renderer.Model {
 #scope_file
 
 Asset_Storage :: struct {
-    models: Table(string, Renderer.Model);
+    model_storage: Model_Storage;
     textures: Table(string, Renderer.Texture);
 }
 
 asset_storage: Asset_Storage;
+
+Model_Storage :: struct {
+    handles: Table(string, Model_Handle);
+    models: [..]Renderer.Model;
+}
+
+destroy_model_storage :: (model_storage: *Model_Storage) {
+    for _, path: model_storage.handles {
+        free(path);
+    }
+    deinit(*model_storage.handles);
+
+    for *model: model_storage.models {
+        Renderer.destroy_model(model);
+    }
+    array_free(model_storage.models);
+
+    model_storage.* = {};
+}
 
 convert_gltf_model_data :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data {
     model_data: Renderer.Model_Data;

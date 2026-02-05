@@ -7,7 +7,8 @@ Entity :: struct {
     scale:    Vector3 = { 1, 1, 1 };
     orientation: Quaternion;
 
-    model: string;
+    model_path: string;
+    model: Engine.Model_Handle;
 
     tint: Vector4 = { 1, 1, 1, 1 };
 
