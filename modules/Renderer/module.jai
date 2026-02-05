@@ -1,4 +1,4 @@
-#module_parameters()(DEBUG: bool = false);
+#module_parameters(DEBUG: bool = false);
 
 #load "renderer.jai";
 #load "model.jai";

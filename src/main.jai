@@ -9,7 +9,6 @@
 #import "Math";
 
 Engine :: #import "Engine"()(DEBUG = DEBUG);
-_ :: #import "Renderer"()(DEBUG = DEBUG); // @Sucks: rendering only to pass the module parameter
 
 #load "fly_camera.jai";
 #load "entity.jai";

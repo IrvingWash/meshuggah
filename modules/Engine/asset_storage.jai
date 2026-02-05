@@ -129,4 +129,3 @@ convert_gltf_model_data :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data 
 #import "Basic";
 #import "Hash_Table";
 GLTF :: #import "GLTF"(VALIDATE = DEBUG);
-Renderer :: #import "Renderer";

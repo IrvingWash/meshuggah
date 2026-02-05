@@ -41,10 +41,15 @@ get_model_from_storage :: get_model;
 
 
 
+#scope_module
+
+Renderer :: #import "Renderer"(DEBUG = DEBUG);
+
+
+
 #scope_file
 
 Window :: #import "Window";
-Renderer :: #import "Renderer";
 #load "asset_storage.jai";
 #load "time.jai";
 #load "input.jai";
