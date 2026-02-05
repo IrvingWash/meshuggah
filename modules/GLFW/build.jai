@@ -67,7 +67,7 @@ build_glfw :: () {
         case .MACOS;
             array_add(
                 *config_command,
-                "-DCMAKE_OSX_DEPLOYMENT_TARGET=26.0",
+                "-DCMAKE_OSX_DEPLOYMENT_TARGET=14.0",
                 "-DGLFW_BUILD_COCOA=ON",
             );
         case .LINUX;
