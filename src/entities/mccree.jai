@@ -19,15 +19,11 @@ Evil_McCree :: struct {
 spawn_mccree :: () {
     mccree: McCree;
 
-    mccree.model = Engine.get_model_from_asset_storage(mccree.model_path);
-
-    bucket_array_add(*entity_manager.storage._McCree, mccree);
+    add_entity(mccree);
 }
 
 spawn_evil_mccree :: () {
     evil_mccree: Evil_McCree;
 
-    evil_mccree.model = Engine.get_model_from_asset_storage(evil_mccree.model_path);
-
-    bucket_array_add(*entity_manager.storage._Evil_McCree, evil_mccree);
+    add_entity(evil_mccree);
 }

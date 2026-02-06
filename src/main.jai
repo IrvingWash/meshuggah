@@ -36,10 +36,10 @@ main :: () {
 
     spawn_fairy();
     spawn_mech();
-    spawn_terrain();
     spawn_guy();
     spawn_mccree();
     spawn_evil_mccree();
+    spawn_terrain();
 
     sun: Engine.Directional_Light = {
         direction = { 0, -1, -1 },

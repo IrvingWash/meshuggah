@@ -15,6 +15,37 @@ update_entity_manager :: () {
     entity_manager.all = get_all_entities();
 }
 
+add_entity :: (entity: $T)
+#modify {
+    return is_subclass_of(cast(*Type_Info, T), "Entity");
+}
+{
+    pointer: *T;
+    locator: Bucket_Locator;
+
+    // @Todo generate this
+    #if T == {
+        case Evil_McCree;
+            locator, pointer = bucket_array_add(*entity_manager.storage._Evil_McCree, entity);
+        case Fairy;
+            locator, pointer = bucket_array_add(*entity_manager.storage._Fairy, entity);
+        case Guy;
+            locator, pointer = bucket_array_add(*entity_manager.storage._Guy, entity);
+        case McCree;
+            locator, pointer = bucket_array_add(*entity_manager.storage._McCree, entity);
+        case Mech;
+            locator, pointer = bucket_array_add(*entity_manager.storage._Mech, entity);
+        case Terrain;
+            locator, pointer = bucket_array_add(*entity_manager.storage._Terrain, entity);
+    }
+
+    pointer.type = T;
+
+    if pointer.model_path {
+        pointer.model = Engine.get_model_from_asset_storage(entity.model_path);
+    }
+}
+
 
 
 #scope_file
@@ -33,29 +64,25 @@ get_all_entities :: () -> []*Entity {
 
 destroy_entity_storage :: (storage: *Entity_Storage) {
     #insert -> string {
-        return generate_destroy_entity_storage_body();
+        entity_type_names := make_entity_type_names();
+
+        builder: String_Builder;
+
+        for entity_type_names {
+            print_to_builder(
+                *builder,
+                "    bucket_array_reset(*storage._%);\n",
+                it,
+            );
+        }
+
+        return builder_to_string(*builder);
     }
 }
 
 // =============================================================================
 // Code generations
 // =============================================================================
-
-generate_destroy_entity_storage_body :: () -> string #compile_time {
-    entity_type_names := make_entity_type_names();
-
-    builder: String_Builder;
-
-    for entity_type_names {
-        print_to_builder(
-            *builder,
-            "    bucket_array_reset(*storage._%);\n",
-            it,
-        );
-    }
-
-    return builder_to_string(*builder);
-}
 
 generate_get_all_entities_body :: () -> string #compile_time {
 INSERTION_STRING :: #string DONE

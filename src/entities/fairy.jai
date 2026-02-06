@@ -11,9 +11,7 @@ Fairy :: struct {
 spawn_fairy :: () {
     fairy: Fairy;
 
-    fairy.model = Engine.get_model_from_asset_storage(fairy.model_path);
-
-    bucket_array_add(*entity_manager.storage._Fairy, fairy);
+    add_entity(fairy);
 }
 
 update_fairy :: (fairy: *Fairy, master: Entity) {
