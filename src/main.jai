@@ -12,11 +12,11 @@ Engine :: #import "Engine"()(DEBUG = DEBUG);
 
 #load "fly_camera.jai";
 #load "entity.jai";
-#load "fairy.jai";
-#load "mech.jai";
-#load "terrain.jai";
-#load "guy.jai";
-#load "mccree.jai";
+#load "entities/fairy.jai";
+#load "entities/mech.jai";
+#load "entities/terrain.jai";
+#load "entities/guy.jai";
+#load "entities/mccree.jai";
 
 main :: () {
     #if DEBUG {
