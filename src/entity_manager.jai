@@ -1,6 +1,7 @@
 Entity_Manager :: struct {
     all: []*Entity;
     storage: Entity_Storage;
+    next_id: u32;
 }
 
 entity_manager: Entity_Manager;
@@ -23,27 +24,35 @@ add_entity :: (entity: $T)
     pointer: *T;
     locator: Bucket_Locator;
 
-    // @Todo generate this
-    #if T == {
-        case Evil_McCree;
-            locator, pointer = bucket_array_add(*entity_manager.storage._Evil_McCree, entity);
-        case Fairy;
-            locator, pointer = bucket_array_add(*entity_manager.storage._Fairy, entity);
-        case Guy;
-            locator, pointer = bucket_array_add(*entity_manager.storage._Guy, entity);
-        case McCree;
-            locator, pointer = bucket_array_add(*entity_manager.storage._McCree, entity);
-        case Mech;
-            locator, pointer = bucket_array_add(*entity_manager.storage._Mech, entity);
-        case Terrain;
-            locator, pointer = bucket_array_add(*entity_manager.storage._Terrain, entity);
+    #insert -> string {
+        entity_type_names := make_entity_type_names();
+
+        builder: String_Builder;
+
+        print_to_builder(*builder, "    #if T == {\n");
+
+        for entity_type_names {
+            print_to_builder(
+                *builder,
+                "        case %1; locator, pointer = bucket_array_add(*entity_manager.storage._%1, entity);\n",
+                it,
+            );
+        }
+
+        print_to_builder(*builder, "    }\n");
+
+        return builder_to_string(*builder);
     }
 
+    pointer.locator = locator;
     pointer.type = T;
+    pointer.id = entity_manager.next_id;
 
     if pointer.model_path {
         pointer.model = Engine.get_model_from_asset_storage(entity.model_path);
     }
+
+    entity_manager.next_id += 1;
 }
 
 
