@@ -49,7 +49,7 @@ add_entity :: (entity: $T)
     pointer.id = entity_manager.next_id;
 
     if pointer.model_path {
-        pointer.model = Engine.get_model_from_asset_storage(entity.model_path);
+        pointer.model = Engine.get_model_from_asset_storage(pointer.model_path);
     }
 
     entity_manager.next_id += 1;

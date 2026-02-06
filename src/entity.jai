@@ -1,5 +1,5 @@
 Entity :: struct {
-    id: u64;
+    id: u32;
     locator: Bucket_Locator;
     type: Type;
 
