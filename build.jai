@@ -32,7 +32,7 @@ Config :: struct {
     plugins_to_create: []Plugin_To_Create;
 }
 
-when_ready_procedures: [..] *Code_Procedure_Header;
+run_when_ready_procedures: [..]*Code_Procedure_Header;
 
 #run,stallable {
     set_build_options_dc({
@@ -233,18 +233,18 @@ handle_run_when_ready :: (message: *Message) {
             for tc: typechecked.procedure_headers {
                 header := tc.expression;
                 if has_note(header, RUN_WHEN_READY_NOTE) {
-                    array_add(*when_ready_procedures, header);
+                    array_add(*run_when_ready_procedures, header);
                 }
             }
         case .PHASE;
             phase := cast(*Message_Phase) message;
             if phase.phase == .TYPECHECKED_ALL_WE_CAN {
-                for when_ready_procedures {
+                for run_when_ready_procedures {
                     s := tprint("#run %();", it.name);
                     add_build_string(s, message.workspace);
                 }
 
-                array_reset(*when_ready_procedures);
+                array_reset(*run_when_ready_procedures);
             }
     }
 }

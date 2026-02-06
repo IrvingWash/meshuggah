@@ -1,5 +1,6 @@
 Mech :: struct {
     #as using entity: Entity;
+    type = Mech;
 
     entity.scale = { 3, 3, 3 };
     model_path = "assets/models/mech/mech.gltf";
@@ -8,14 +9,14 @@ Mech :: struct {
     is_controlled: bool = true;
 }
 
-spawn_mech :: () -> Mech {
+spawn_mech :: () {
     mech: Mech;
     mech.position = {0, 5, 0 };
     mech.model = Engine.get_model_from_asset_storage(mech.model_path);
 
     set_from_axis_and_angle(*mech.orientation, { 1, 0, 0 }, Engine.deg_to_rad(90));
 
-    return mech;
+    bucket_array_add(*entity_manager.storage._Mech, mech);
 }
 
 update_mech :: (mech: *Mech) {

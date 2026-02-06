@@ -1,11 +1,12 @@
 Guy :: struct {
     #as using entity: Entity;
     model_path = "assets/models/guy/guy.gltf";
+    type = Guy;
 
     entity.scale = { 0.6, 0.6, 0.6 };
 }
 
-spawn_guy :: () -> Guy {
+spawn_guy :: () {
     guy: Guy;
 
     guy.position = { 0, 0, -5 };
@@ -14,5 +15,5 @@ spawn_guy :: () -> Guy {
 
     guy.model = Engine.get_model_from_asset_storage(guy.model_path);
 
-    return guy;
+    bucket_array_add(*entity_manager.storage._Guy, guy);
 }
