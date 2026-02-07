@@ -48,7 +48,7 @@ main :: () {
 
     look_at(*fly_camera, entity_manager.storage._McCree[0].position);
 
-    while !Engine.is_quit_requested() {
+    while !Engine.is_terminating() {
         Engine.begin_frame();
 
         update_entity_manager();

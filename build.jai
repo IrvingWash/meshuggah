@@ -20,7 +20,7 @@ Options:
   -h, --help     Show this help message
 
 Plugins:
-    Any plugins shipped with the language can be used.
+    Any plugins can be used.
 
 Example
     jai ./build.jai - --optimized +Autorun

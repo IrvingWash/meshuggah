@@ -1,9 +1,9 @@
 init_input :: () {
-    Window.set_cursor_mode(.DISABLED);
+    Window.set_cursor_mode(engine.window_data.window, .DISABLED);
 
-    Window.add_scroll_handler(on_scroll_change);
-    Window.add_cursor_position_change_handler(on_cursor_position_change);
-    Window.add_key_handler(on_key);
+    Window.add_scroll_handler(engine.window_data, on_scroll_change);
+    Window.add_cursor_position_change_handler(engine.window_data, on_cursor_position_change);
+    Window.add_key_handler(engine.window_data, on_key);
 }
 
 deinit_input :: () {
@@ -11,7 +11,7 @@ deinit_input :: () {
 }
 
 is_key_held :: inline (key: Window.Key) -> bool {
-    return Window.get_key(key) == Window.Key_State.PRESS;
+    return Window.get_key(engine.window_data.window, key) == Window.Key_State.PRESS;
 }
 
 is_key_pressed :: inline (key: Window.Key) -> bool {

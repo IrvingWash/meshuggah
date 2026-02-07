@@ -135,6 +135,13 @@ set_window_hint :: inline (hint: Window_Hint, value: s32) {
     glfwWindowHint(xx hint, value);
 }
 
+get_window_user_pointer :: (window: *Window) -> *void #foreign GLFW "glfwGetWindowUserPointer";
+
+set_window_user_pointer :: (
+    window: *Window,
+    pointer: *void,
+) #foreign GLFW "glfwSetWindowUserPointer";
+
 set_window_hint :: inline (hint: Window_Hint, value: bool) {
     glfwWindowHint(xx hint, xx value);
 }
