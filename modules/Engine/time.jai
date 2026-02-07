@@ -1,47 +1,70 @@
-init_time :: () {}
+#scope_module
 
-deinit_time :: () {
-    deinit(*time.timers);
-    array_free(time.finished_timers);
+Time :: struct {
+    // Real time, not affected by scale
+    raw_previous: float64;
+    raw_current:  float64;
+    raw_delta:    float;
+
+    // Time affected by scale
+    simulated_time: float64;
+
+    scale: float = 1;
+
+    next_timer_id: u32 = 1;
+    timers: Table(u32, Timer_Data);
+
+    finished_timers: [..]u32;
 }
 
-get_delta_time :: () -> float {
+
+init_time :: () -> *Time {
+    time := New(Time);
+
+    return time;
+}
+
+deinit_time :: (time: *Time) {
+    deinit(*time.timers);
+
+    array_free(time.finished_timers);
+
+    free(time);
+}
+
+get_delta_time :: (time: *Time) -> float {
     return time.raw_delta * time.scale;
 }
 
-get_time_scale :: () -> float {
+get_time_scale :: (time: *Time) -> float {
     return time.scale;
 }
 
-get_time :: () -> float64 {
+get_time :: (time: *Time) -> float64 {
     return time.simulated_time;
 }
 
-set_time_scale :: (scale: float = 1) {
+set_time_scale :: (time: *Time, scale: float) {
     time.scale = scale;
 }
 
-set_timeout :: inline (seconds: float) -> u32 {
+set_timeout :: inline (time: *Time, seconds: float) -> u32 {
     return set_timer(seconds, false);
 }
 
-set_interval :: inline (seconds: float) -> u32 {
+set_interval :: inline (time: *Time, seconds: float) -> u32 {
     return set_timer(seconds, true);
 }
 
-clear_timer :: (id: u32) {
+clear_timer :: (time: *Time, id: u32) {
     table_remove(*time.timers, id);
 }
 
-get_finished_timers :: () -> []u32 {
+get_finished_timers :: (time: *Time) -> []u32 {
     return time.finished_timers;
 }
 
-
-
-#scope_module
-
-update_time :: () {
+update_time :: (time: *Time) {
     array_reset_keeping_memory(*time.finished_timers);
 
     time.raw_previous = time.raw_current;
@@ -70,7 +93,7 @@ update_time :: () {
     }
 
     for timer_id: timer_ids_to_remove {
-        clear_timer(timer_id);
+        clear_timer(time, timer_id);
     }
 }
 
@@ -79,25 +102,6 @@ update_time :: () {
 #scope_file
 
 MAX_DELTA_TIME: float64 : 1.0 / 60.0 * 2;
-
-Time :: struct {
-    // Real time, not affected by scale
-    raw_previous: float64;
-    raw_current:  float64;
-    raw_delta:    float;
-
-    // Time affected by scale
-    simulated_time: float64;
-
-    scale: float = 1;
-
-    next_timer_id: u32 = 1;
-    timers: Table(u32, Timer_Data);
-
-    finished_timers: [..]u32;
-}
-
-time: Time;
 
 Timer_Data :: struct {
     id: u32;

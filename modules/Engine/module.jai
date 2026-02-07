@@ -7,11 +7,11 @@ init :: ($$title: string, width: u32, height: u32, vsync: bool) {
     engine.asset_storage = init_asset_storage();
     engine.renderer = Renderer.init(get_framebuffer_size);
     engine.input_state = init_input(engine.window);
-    init_time();
+    engine.time = init_time();
 }
 
 deinit :: () {
-    deinit_time();
+    deinit_time(engine.time);
     deinit_input(engine.input_state);
     Renderer.deinit(engine.renderer);
     deinit_asset_storage(engine.asset_storage);
@@ -19,7 +19,7 @@ deinit :: () {
 }
 
 begin_frame :: () {
-    update_time();
+    update_time(engine.time);
 
     process_input(engine.input_state);
 }
@@ -100,6 +100,42 @@ is_key_held :: (key: Window.Key) -> bool {
     return is_key_held(engine.input_state, key);
 }
 
+// =============================================================================
+// Time
+// =============================================================================
+
+get_delta_time :: inline () -> float {
+    return get_delta_time(engine.time);
+}
+
+get_time_scale :: inline () -> float {
+    return get_time_scale(engine.time);
+}
+
+get_time :: inline () -> float64 {
+    return get_time(engine.time);
+}
+
+set_time_scale :: inline (scale: float) {
+    set_time_scale(engine.time, scale);
+}
+
+set_timeout :: inline (seconds: float) -> u32 {
+    return set_timeout(engine.time, seconds);
+}
+
+set_interval :: inline (seconds: float) -> u32 {
+    return set_interval(engine.time, seconds);
+}
+
+clear_timer :: inline (id: u32) {
+    clear_timer(engine.time, id);
+}
+
+get_finished_timers :: inline () -> []u32 {
+    return get_finished_timers(engine.time);
+}
+
 
 
 #scope_module
@@ -118,6 +154,7 @@ Engine :: struct {
     renderer: Renderer.Renderer_Handle;
     asset_storage: *Asset_Storage;
     input_state: *Input_State;
+    time: *Time;
 }
 
 get_framebuffer_size :: () -> u32, u32 {
