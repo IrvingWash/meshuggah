@@ -1,7 +1,6 @@
 Guy :: struct {
     #as using entity: Entity;
     model_path = "assets/models/guy/guy.gltf";
-    type = Guy;
 
     entity.scale = { 0.6, 0.6, 0.6 };
 }

@@ -1,6 +1,5 @@
 Mech :: struct {
     #as using entity: Entity;
-    type = Mech;
 
     entity.scale = { 3, 3, 3 };
     model_path = "assets/models/mech/mech.gltf";
