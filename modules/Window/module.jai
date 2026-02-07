@@ -3,12 +3,12 @@ Window_Handle :: #type,distinct *void;
 Key :: GLFW.Key;
 Key_State :: GLFW.Key_State;
 
-Framebuffer_Size_Change_Handler :: #type (width: u32, height: u32);
-Scroll_Handler                  :: #type (x_offset: float, y_offset: float);
-Cursor_Position_Change_Handler  :: #type (x: float, y: float);
-Key_Handler                     :: #type (key: Key, state: Key_State);
-Window_Size_Change_Handler      :: #type (width: u32, height: u32);
-Window_Position_Change_Handler  :: #type(x: s32, y: s32);
+Framebuffer_Size_Change_Handler :: #type (width: u32, height: u32, data: *void);
+Scroll_Handler                  :: #type (x_offset: float, y_offset: float, data: *void);
+Cursor_Position_Change_Handler  :: #type (x: float, y: float, data: *void);
+Key_Handler                     :: #type (key: Key, state: Key_State, data: *void);
+Window_Size_Change_Handler      :: #type (width: u32, height: u32, *void);
+Window_Position_Change_Handler  :: #type(x: s32, y: s32, *void);
 
 Cursor_Mode :: enum {
     NORMAL;
@@ -122,12 +122,12 @@ destroy_window :: (handle: Window_Handle) {
     GLFW.destroy_window(window_data.window);
     GLFW.terminate();
 
-    array_free(window_data.framebuffer_size_change_handlers);
-    array_free(window_data.scroll_handlers);
-    array_free(window_data.cursor_position_change_handlers);
-    array_free(window_data.key_handlers);
-    array_free(window_data.window_size_change_handlers);
-    array_free(window_data.window_position_change_handlers);
+    array_free(window_data.callbacks.framebuffer_size_change_handlers);
+    array_free(window_data.callbacks.scroll_handlers);
+    array_free(window_data.callbacks.cursor_position_change_handlers);
+    array_free(window_data.callbacks.key_handlers);
+    array_free(window_data.callbacks.window_size_change_handlers);
+    array_free(window_data.callbacks.window_position_change_handlers);
 
     free(window_data);
 }
@@ -210,42 +210,52 @@ toggle_vsync :: (handle: Window_Handle) {
 add_framebuffer_size_change_handler :: (
     handle: Window_Handle,
     handler: Framebuffer_Size_Change_Handler,
+    data: *void,
 ) {
     window_data := cast(*Window_Data, handle);
 
-    array_add(*window_data.framebuffer_size_change_handlers, handler);
+    array_add(
+        *window_data.framebuffer_size_change_handlers,
+        { proc = handler, data = data },
+    );
 }
 
 add_scroll_handler :: (
     handle: Window_Handle,
     handler: Scroll_Handler,
+    data: *void,
 ) {
     window_data := cast(*Window_Data, handle);
 
-    array_add(*window_data.scroll_handlers, handler);
+    array_add(
+        *window_data.callbacks.scroll_handlers,
+        { proc =  handler, data = data },
+    );
 }
 
 add_cursor_position_change_handler :: (
     handle: Window_Handle,
     handler: Cursor_Position_Change_Handler,
+    data: *void
 ) {
     window_data := cast(*Window_Data, handle);
 
     array_add(
-        *window_data.cursor_position_change_handlers,
-        handler,
+        *window_data.callbacks.cursor_position_change_handlers,
+        { proc = handler, data = data },
     );
 }
 
 add_key_handler :: (
     handle: Window_Handle,
     handler: Key_Handler,
+    data: *void,
 ) {
     window_data := cast(*Window_Data, handle);
 
     array_add(
-        *window_data.key_handlers,
-        handler,
+        *window_data.callbacks.key_handlers,
+        { proc = handler, data = data },
     );
 }
 
@@ -320,12 +330,7 @@ Window_Data :: struct {
     is_vsync_enabled: bool;
     is_fullscreen: bool;
 
-    framebuffer_size_change_handlers: [..]Framebuffer_Size_Change_Handler;
-    scroll_handlers: [..]Scroll_Handler;
-    cursor_position_change_handlers: [..]Cursor_Position_Change_Handler;
-    key_handlers: [..]Key_Handler;
-    window_size_change_handlers: [..]Window_Size_Change_Handler;
-    window_position_change_handlers: [..]Window_Position_Change_Handler;
+    callbacks: Callbacks;
 
     windowed_cache: struct {
         x_position: s32;
@@ -333,6 +338,26 @@ Window_Data :: struct {
         logical_width: u32;
         logical_height: u32;
     }
+}
+
+Callbacks :: struct {
+    framebuffer_size_change_handlers: [..]Handler(Framebuffer_Size_Change_Handler);
+    scroll_handlers: [..]Handler(Scroll_Handler);
+    cursor_position_change_handlers: [..]Handler(Cursor_Position_Change_Handler);
+    key_handlers: [..]Handler(Key_Handler);
+    window_size_change_handlers: [..]Handler(Window_Size_Change_Handler);
+    window_position_change_handlers: [..]Handler(Window_Position_Change_Handler);
+}
+
+Handler :: struct ($T: Type)
+#modify {
+    ti := cast(*Type_Info, T);
+
+    return ti.type == .PROCEDURE;
+}
+{
+    data: *void;
+    proc: T;
 }
 
 Window :: #type GLFW.Window;
@@ -360,8 +385,8 @@ handle_framebuffer_size_change: GLFW.Framebuffer_Size_Proc : (
     window_data.framebuffer_height = cast(u32, height);
 
     push_context {
-        for proc: window_data.framebuffer_size_change_handlers {
-            proc(window_data.framebuffer_width, window_data.framebuffer_height);
+        for handler: window_data.callbacks.framebuffer_size_change_handlers {
+            handler.proc(window_data.framebuffer_width, window_data.framebuffer_height, handler.data);
         }
     }
 }
@@ -374,8 +399,8 @@ handle_scroll: GLFW.Scroll_Proc : (
     window_data := cast(*Window_Data, GLFW.get_window_user_pointer(window));
 
     push_context {
-        for proc: window_data.scroll_handlers {
-            proc(cast(float, x_offset), cast(float, y_offset));
+        for handler: window_data.callbacks.scroll_handlers {
+            handler.proc(cast(float, x_offset), cast(float, y_offset), handler.data);
         }
     }
 }
@@ -388,8 +413,8 @@ handle_cursor_position_change: GLFW.Cursor_Position_Proc : (
     window_data := cast(*Window_Data, GLFW.get_window_user_pointer(window));
 
     push_context {
-        for proc: window_data.cursor_position_change_handlers {
-            proc(cast(float, x), cast(float, y));
+        for handler: window_data.callbacks.cursor_position_change_handlers {
+            handler.proc(cast(float, x), cast(float, y), handler.data);
         }
     }
 }
@@ -404,8 +429,8 @@ handle_key: GLFW.Key_Proc : (
     window_data := cast(*Window_Data, GLFW.get_window_user_pointer(window));
 
     push_context {
-        for proc: window_data.key_handlers {
-            proc(key, action);
+        for handler: window_data.callbacks.key_handlers {
+            handler.proc(key, action, handler.data);
         }
     }
 }
@@ -421,8 +446,8 @@ handle_window_size_change: GLFW.Window_Size_Proc : (
     window_data.logical_height = cast(u32, height);
 
     push_context {
-        for proc: window_data.window_size_change_handlers {
-            proc(cast(u32, width), cast(u32, height));
+        for handler: window_data.callbacks.window_size_change_handlers {
+            handler.proc(cast(u32, width), cast(u32, height), handler.data);
         }
     }
 }
@@ -438,8 +463,8 @@ handle_window_position_change: GLFW.Window_Position_Proc : (
     window_data.y_position = y;
 
     push_context {
-        for proc: window_data.window_position_change_handlers {
-            proc(x, y);
+        for handler: window_data.callbacks.window_position_change_handlers {
+            handler.proc(x, y, handler.data);
         }
     }
 }
