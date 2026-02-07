@@ -1,9 +1,11 @@
 #module_parameters()(DEBUG: bool = false);
 
+Directional_Light :: #type Renderer.Directional_Light;
+
 init :: ($$title: string, width: u32, height: u32, vsync: bool) {
     engine.window = Window.create_window(title, width, height, vsync);
     init_asset_storage();
-    Renderer.init(get_framebuffer_size);
+    engine.renderer = Renderer.init(get_framebuffer_size);
     init_input();
     init_time();
 }
@@ -11,7 +13,7 @@ init :: ($$title: string, width: u32, height: u32, vsync: bool) {
 deinit :: () {
     deinit_time();
     deinit_input();
-    Renderer.deinit();
+    Renderer.deinit(engine.renderer);
     deinit_asset_storage();
     Window.destroy_window(engine.window);
 }
@@ -26,12 +28,6 @@ end_frame :: () {
     Window.swap_buffers(engine.window);
 }
 
-get_framebuffer_size :: () -> u32, u32 {
-    width, height := Window.get_framebuffer_size(engine.window);
-
-    return width, height;
-}
-
 is_terminating :: () -> bool {
     return Window.should_window_close(engine.window);
 }
@@ -40,13 +36,29 @@ toggle_fullscreen :: () {
     Window.toggle_fullscreen(engine.window);
 }
 
-Directional_Light :: Renderer.Directional_Light;
+begin_drawing_frame :: (camera: $T/interface Renderer.Render_Camera) {
+    Renderer.begin_drawing_frame(engine.renderer, camera);
+}
 
-begin_drawing_frame   :: Renderer.begin_frame;
-end_drawing_frame     :: Renderer.end_frame;
-draw                  :: Renderer.draw;
-set_directional_light :: Renderer.set_directional_light;
-set_ambient_light     :: Renderer.set_ambient_light;
+draw_model :: (
+    model: Renderer.Model,
+    model_transform: Matrix4,
+    tint: Vector4 = { 1, 1, 1, 1 },
+) {
+    Renderer.draw_model(engine.renderer, model, model_transform, tint);
+}
+
+set_directional_light :: (light: Directional_Light) {
+    Renderer.set_directional_light(engine.renderer, light);
+}
+
+set_ambient_light :: (color: Vector3) {
+    Renderer.set_ambient_light(engine.renderer, color);
+}
+
+end_drawing_frame :: () {
+    Renderer.end_drawing_frame(engine.renderer);
+}
 
 
 
@@ -62,6 +74,13 @@ Renderer :: #import "Renderer"(DEBUG = DEBUG);
 
 Engine :: struct {
     window: Window.Window_Handle;
+    renderer: Renderer.Renderer_Handle;
+}
+
+get_framebuffer_size :: () -> u32, u32 {
+    width, height := Window.get_framebuffer_size(engine.window);
+
+    return width, height;
 }
 
 Window :: #import "Window";

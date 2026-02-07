@@ -1,3 +1,15 @@
+Render_Camera :: struct {
+    position: Vector3;
+
+    front:    Vector3;
+    up:       Vector3;
+
+    fov: float;
+
+    far:  float;
+    near: float;
+}
+
 #scope_module
 
 Transforms :: struct {

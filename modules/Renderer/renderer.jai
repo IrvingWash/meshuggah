@@ -1,7 +1,11 @@
+Renderer_Handle :: #type,distinct *void;
+
 init :: (
     framebuffer_size_getter: () -> (u32, u32),
     clear_color: Vector4 = { 0, 0, 1, 1 },
-) {
+) -> Renderer_Handle {
+    renderer := New(Renderer);
+
     renderer.get_framebuffer_size = framebuffer_size_getter;
     renderer.clear_color = clear_color;
     renderer.shader = create_shader(
@@ -16,9 +20,13 @@ init :: (
     #if DEBUG {
         init_debug_renderer();
     }
+
+    return cast(Renderer_Handle, renderer);
 }
 
-deinit :: () {
+deinit :: (handle: Renderer_Handle) {
+    renderer := cast(*Renderer, handle);
+
     #if DEBUG {
         deinit_debug_renderer();
     }
@@ -26,10 +34,14 @@ deinit :: () {
     deinit(*renderer.batches);
     destroy_shader(*renderer.shader);
     destroy_texture(*renderer.default_base_color_texture);
+
+    free(renderer);
 }
 
-begin_frame :: (camera: $T/interface Render_Camera) {
-    renderer.transforms.perspective = make_perspective_projection_transform_from_camera(camera);
+begin_drawing_frame :: (handle: Renderer_Handle, camera: $T/interface Render_Camera) {
+    renderer := cast(*Renderer, handle);
+
+    renderer.transforms.perspective = make_perspective_projection_transform_from_camera(renderer, camera);
     renderer.transforms.view = make_view_transform_from_camera(camera);
 
     #if DEBUG {
@@ -37,29 +49,38 @@ begin_frame :: (camera: $T/interface Render_Camera) {
     }
 }
 
-draw :: (
+draw_model :: (
+    handle: Renderer_Handle,
     model: Model,
     model_transform: Matrix4,
     tint: Vector4 = { 1, 1, 1, 1 },
 ) {
+    renderer := cast(*Renderer, handle);
+
     for node: model.nodes {
         if node.parent == -1 {
-            draw_node(model, cast(u32, it_index), model_transform, tint);
+            draw_node(renderer, model, cast(u32, it_index), model_transform, tint);
         }
     }
 }
 
-set_ambient_light :: (color: Vector3) {
+set_ambient_light :: (handle: Renderer_Handle, color: Vector3) {
+    renderer := cast(*Renderer, handle);
+
     renderer.ambient_light.color = color;
 }
 
-set_directional_light :: (light: Directional_Light) {
+set_directional_light :: (handle: Renderer_Handle, light: Directional_Light) {
+    renderer := cast(*Renderer, handle);
+
     renderer.directional_light = light;
 }
 
-end_frame :: () {
-    begin_backbuffer_pass(clear = true);
-    finish_backbuffer_pass();
+end_drawing_frame :: (handle: Renderer_Handle) {
+    renderer := cast(*Renderer, handle);
+
+    begin_backbuffer_pass(renderer, clear = true);
+    finish_backbuffer_pass(renderer);
 
     #if DEBUG {
         begin_debug_pass();
@@ -95,21 +116,7 @@ Batch :: struct {
     instances.allocator = temp;
 }
 
-renderer: Renderer;
-
-Render_Camera :: struct {
-    position: Vector3;
-
-    front:    Vector3;
-    up:       Vector3;
-
-    fov: float;
-
-    far:  float;
-    near: float;
-}
-
-begin_backbuffer_pass :: (clear: bool) {
+begin_backbuffer_pass :: (renderer: *Renderer, clear: bool) {
     using gl;
 
     glDepthFunc(GL_LESS);
@@ -162,7 +169,7 @@ begin_backbuffer_pass :: (clear: bool) {
     );
 }
 
-finish_backbuffer_pass :: () {
+finish_backbuffer_pass :: (renderer: *Renderer) {
     using gl;
 
     for batch: renderer.batches {
@@ -217,6 +224,7 @@ finish_backbuffer_pass :: () {
 }
 
 draw_node :: (
+    renderer: *Renderer,
     model: Model,
     node_index: u32,
     parent_world_transform: Matrix4,
@@ -257,11 +265,14 @@ draw_node :: (
     }
 
     for child_index: node.children {
-        draw_node(model, child_index, world_transform, tint);
+        draw_node(renderer, model, child_index, world_transform, tint);
     }
 }
 
-make_perspective_projection_transform_from_camera :: (camera: $T/interface Render_Camera) -> Matrix4 {
+make_perspective_projection_transform_from_camera :: (
+    renderer: *Renderer,
+    camera: $T/interface Render_Camera,
+) -> Matrix4 {
     width, height := renderer.get_framebuffer_size(); // @Todo this will eventually be get_render_target_size, right?
 
     return make_projection_matrix(
