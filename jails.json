@@ -2,12 +2,15 @@
     "roots": [
         "src/main.jai",
         "modules/GLTF/module.jai",
+        "modules/GLFW/module.jai",
+        "modules/Engine/module.jai",
+        "modules/Renderer/module.jai",
+        "modules/Window/module.jai",
         "build.jai"
     ],
     "build_root": "build.jai",
     "local_modules": [
         "modules"
     ],
-    "intermediate_path": "tmp/",
     "auto_insert_parentheses": false
 }

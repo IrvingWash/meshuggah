@@ -78,7 +78,7 @@ build :: (build_options_dc: Build_Options, config: Config) -> ok: bool, error_me
         copy_commonly_propagated_fields(build_options_dc, *build_options);
 
         #if #exists(JAILS_DIAGNOSTICS_BUILD) {
-            options.output_type = .NO_OUTPUT;
+            build_options.output_type = .NO_OUTPUT;
         } else {
             build_options.output_type = .EXECUTABLE;
         }
