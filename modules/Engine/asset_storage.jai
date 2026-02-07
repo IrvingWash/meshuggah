@@ -44,7 +44,12 @@ get_model_from_asset_storage :: (path: string) -> Model_Handle {
 }
 
 resolve_asset_storage_model :: (handle: Model_Handle) -> *Renderer.Model {
-    assert(handle < cast,no_check(Model_Handle, asset_storage.model_storage.models.count));
+    assert(
+        handle < cast,no_check(Model_Handle, asset_storage.model_storage.models.count),
+        "Incorrect handle: it's %, but the maximum is %",
+        handle,
+        asset_storage.model_storage.models.count,
+    );
 
     return *asset_storage.model_storage.models[handle];
 }

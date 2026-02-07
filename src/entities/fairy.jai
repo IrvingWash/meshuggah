@@ -7,12 +7,10 @@ Fairy :: struct {
     offset:          Vector3 = { 2, 3, 1 };
 }
 
-spawn_fairy :: () -> Fairy {
+spawn_fairy :: () {
     fairy: Fairy;
 
-    fairy.model = Engine.get_model_from_asset_storage(fairy.model_path);
-
-    return fairy;
+    spawn_entity(fairy);
 }
 
 update_fairy :: (fairy: *Fairy, master: Entity) {

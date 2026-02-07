@@ -5,10 +5,8 @@ Terrain :: struct {
     entity.scale = { 20, 0.1, 20 };
 }
 
-spawn_terrain :: () -> Terrain {
+spawn_terrain :: () {
     terrain: Terrain;
 
-    terrain.model = Engine.get_model_from_asset_storage(terrain.model_path);
-
-    return terrain;
+    spawn_entity(terrain);
 }

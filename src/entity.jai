@@ -1,6 +1,5 @@
 Entity :: struct {
-    id: u64;
-    locator: Bucket_Locator;
+    token: Entity_Token;
     type: Type;
 
     position: Vector3;
@@ -15,9 +14,20 @@ Entity :: struct {
     flags: Entity_Flags;
 }
 
+Entity_Token :: struct {
+    id: u32;
+    locator: Bucket_Locator;
+}
+
 Entity_Flags :: enum_flags #specified {
     NONE      :: 0;
     INVISIBLE :: 1 << 0;
+}
+
+operator == :: (a: Entity_Token, b: Entity_Token) -> bool {
+    return a.id == b.id
+        && a.locator.slot_index == b.locator.slot_index
+        && a.locator.bucket_index == b.locator.bucket_index;
 }
 
 get_entity_transform :: (entity: Entity) -> Matrix4 {

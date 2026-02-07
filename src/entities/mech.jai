@@ -8,14 +8,13 @@ Mech :: struct {
     is_controlled: bool = true;
 }
 
-spawn_mech :: () -> Mech {
+spawn_mech :: () {
     mech: Mech;
     mech.position = {0, 5, 0 };
-    mech.model = Engine.get_model_from_asset_storage(mech.model_path);
 
     set_from_axis_and_angle(*mech.orientation, { 1, 0, 0 }, Engine.deg_to_rad(90));
 
-    return mech;
+    spawn_entity(mech);
 }
 
 update_mech :: (mech: *Mech) {

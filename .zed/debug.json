@@ -1,0 +1,13 @@
+[
+  {
+    "label": "Debug main",
+    "adapter": "CodeLLDB",
+    "request": "launch",
+    "program": "./build/DEBUG/target",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "build": {
+      "command": "jai",
+      "args": ["-quiet", "./build.jai", "-", "--debug"],
+    },
+  },
+]
