@@ -7,8 +7,8 @@ Framebuffer_Size_Change_Handler :: #type (width: u32, height: u32, data: *void);
 Scroll_Handler                  :: #type (x_offset: float, y_offset: float, data: *void);
 Cursor_Position_Change_Handler  :: #type (x: float, y: float, data: *void);
 Key_Handler                     :: #type (key: Key, state: Key_State, data: *void);
-Window_Size_Change_Handler      :: #type (width: u32, height: u32, *void);
-Window_Position_Change_Handler  :: #type(x: s32, y: s32, *void);
+Window_Size_Change_Handler      :: #type (width: u32, height: u32, data: *void);
+Window_Position_Change_Handler  :: #type(x: s32, y: s32, data: *void);
 
 Cursor_Mode :: enum {
     NORMAL;
@@ -215,9 +215,22 @@ add_framebuffer_size_change_handler :: (
     window_data := cast(*Window_Data, handle);
 
     array_add(
-        *window_data.framebuffer_size_change_handlers,
+        *window_data.callbacks.framebuffer_size_change_handlers,
         { proc = handler, data = data },
     );
+}
+
+remove_framebuffer_size_change_handler :: (
+    handle: Window_Handle,
+    handler: Framebuffer_Size_Change_Handler,
+) {
+    window_data := cast(*Window_Data, handle);
+
+    for window_data.callbacks.framebuffer_size_change_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
 }
 
 add_scroll_handler :: (
@@ -229,8 +242,21 @@ add_scroll_handler :: (
 
     array_add(
         *window_data.callbacks.scroll_handlers,
-        { proc =  handler, data = data },
+        { proc = handler, data = data },
     );
+}
+
+remove_scroll_handler :: (
+    handle: Window_Handle,
+    handler: Scroll_Handler,
+) {
+    window_data := cast(*Window_Data, handle);
+
+    for window_data.callbacks.scroll_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
 }
 
 add_cursor_position_change_handler :: (
@@ -246,6 +272,19 @@ add_cursor_position_change_handler :: (
     );
 }
 
+remove_cursor_position_change_handler :: (
+    handle: Window_Handle,
+    handler: Cursor_Position_Change_Handler,
+) {
+    window_data := cast(*Window_Data, handle);
+
+    for window_data.callbacks.cursor_position_change_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
+}
+
 add_key_handler :: (
     handle: Window_Handle,
     handler: Key_Handler,
@@ -259,28 +298,69 @@ add_key_handler :: (
     );
 }
 
+remove_key_handler :: (
+    handle: Window_Handle,
+    handler: Key_Handler,
+) {
+    window_data := cast(*Window_Data, handle);
+
+    for window_data.callbacks.key_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
+}
+
 add_window_size_change_handler :: (
+    handle: Window_Handle,
+    handler: Window_Size_Change_Handler,
+    data: *void,
+) {
+    window_data := cast(*Window_Data, handle);
+
+    array_add(
+        *window_data.callbacks.window_size_change_handlers,
+        { proc = handler, data = data },
+    );
+}
+
+remove_window_size_change_handler :: (
     handle: Window_Handle,
     handler: Window_Size_Change_Handler,
 ) {
     window_data := cast(*Window_Data, handle);
 
-    array_add(
-        *window_data.window_size_change_handlers,
-        handler,
-    );
+    for window_data.callbacks.window_size_change_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
 }
 
 add_window_position_change_handler :: (
     handle: Window_Handle,
     handler: Window_Position_Change_Handler,
+    data: *void,
 ) {
     window_data := cast(*Window_Data, handle);
 
     array_add(
-        *window_data.window_position_change_handlers,
-        handler,
+        *window_data.callbacks.window_position_change_handlers,
+        { proc = handler, data = data },
     );
+}
+
+remove_window_position_change_handler :: (
+    handle: Window_Handle,
+    handler: Window_Position_Change_Handler,
+) {
+    window_data := cast(*Window_Data, handle);
+
+    for window_data.callbacks.window_position_change_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
 }
 
 get_framebuffer_size :: (handle: Window_Handle) -> u32, u32 {

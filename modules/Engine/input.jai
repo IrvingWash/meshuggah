@@ -27,6 +27,10 @@ init_input :: (window: Window.Window_Handle) -> *Input_State {
 }
 
 deinit_input :: (input_state: *Input_State) {
+    Window.remove_key_handler(input_state.window, on_key);
+    Window.remove_cursor_position_change_handler(input_state.window, on_cursor_position_change);
+    Window.remove_scroll_handler(input_state.window, on_scroll_change);
+
     free(input_state);
 }
 
