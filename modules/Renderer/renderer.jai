@@ -18,7 +18,7 @@ init :: (
     );
 
     #if DEBUG {
-        init_debug_renderer();
+        renderer.debug_renderer = init_debug_renderer();
     }
 
     return cast(Renderer_Handle, renderer);
@@ -28,7 +28,7 @@ deinit :: (handle: Renderer_Handle) {
     renderer := cast(*Renderer, handle);
 
     #if DEBUG {
-        deinit_debug_renderer();
+        deinit_debug_renderer(renderer.debug_renderer);
     }
 
     deinit(*renderer.batches);
@@ -45,7 +45,7 @@ begin_drawing_frame :: (handle: Renderer_Handle, camera: $T/interface Render_Cam
     renderer.transforms.view = make_view_transform_from_camera(camera);
 
     #if DEBUG {
-        start_debug_drawing(renderer.transforms);
+        start_debug_drawing(renderer.debug_renderer, renderer.transforms);
     }
 }
 
@@ -83,8 +83,8 @@ end_drawing_frame :: (handle: Renderer_Handle) {
     finish_backbuffer_pass(renderer);
 
     #if DEBUG {
-        begin_debug_pass();
-        end_debug_pass();
+        begin_debug_pass(renderer.debug_renderer);
+        end_debug_pass(renderer.debug_renderer);
     }
 
     table_reset(*renderer.batches);
@@ -108,6 +108,10 @@ Renderer :: struct {
 
     ambient_light: Ambient_Light;
     directional_light: Directional_Light;
+
+    #if DEBUG {
+        debug_renderer: Debug_Renderer_Handle;
+    }
 }
 
 Batch :: struct {
@@ -259,7 +263,7 @@ draw_node :: (
             }
 
             #if DEBUG {
-                draw_bounding_box(mesh.aabb, world_transform);
+                draw_bounding_box(renderer.debug_renderer, mesh.aabb, world_transform);
             }
         }
     }

@@ -1,6 +1,10 @@
 #scope_module
 
-init_debug_renderer :: () {
+Debug_Renderer_Handle :: #type,distinct *void;
+
+init_debug_renderer :: () -> Debug_Renderer_Handle {
+    debug_renderer := New(Debug_Renderer);
+
     debug_renderer.shader = create_shader(
         "modules/Renderer/assets/shaders/debug_vertex.glsl",
         "modules/Renderer/assets/shaders/debug_fragment.glsl",
@@ -43,9 +47,13 @@ init_debug_renderer :: () {
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    return cast(Debug_Renderer_Handle, debug_renderer);
 }
 
-deinit_debug_renderer :: () {
+deinit_debug_renderer :: (handle: Debug_Renderer_Handle) {
+    debug_renderer := cast(*Debug_Renderer, handle);
+
     using gl;
 
     glDeleteVertexArrays(1, *debug_renderer.vao);
@@ -55,14 +63,17 @@ deinit_debug_renderer :: () {
 
     array_free(debug_renderer.vertices);
 
-    debug_renderer = {};
+    free(debug_renderer);
 }
 
 draw_line :: (
+    handle: Debug_Renderer_Handle,
     a: Vector3,
     b: Vector3,
     color: Vector4 = { 0, 1, 0, 1 },
 ) {
+    debug_renderer := cast(*Debug_Renderer, handle);
+
     array_add(
         *debug_renderer.vertices,
         { a, color },
@@ -71,6 +82,7 @@ draw_line :: (
 }
 
 draw_bounding_box :: (
+    handle: Debug_Renderer_Handle,
     aabb: AABB,
     world_transform: Matrix4,
     color: Vector4 = { 0, 1, 0, 1 },
@@ -93,28 +105,32 @@ draw_bounding_box :: (
         corner.* = (world_transform * Vector4.{ corner.x, corner.y, corner.z, 1 }).xyz;
     }
 
-    draw_line(corners[0], corners[1], color);
-    draw_line(corners[1], corners[2], color);
-    draw_line(corners[2], corners[3], color);
-    draw_line(corners[3], corners[0], color);
-    draw_line(corners[4], corners[5], color);
-    draw_line(corners[5], corners[6], color);
-    draw_line(corners[6], corners[7], color);
-    draw_line(corners[7], corners[4], color);
-    draw_line(corners[0], corners[4], color);
-    draw_line(corners[1], corners[5], color);
-    draw_line(corners[2], corners[6], color);
-    draw_line(corners[3], corners[7], color);
+    draw_line(handle, corners[0], corners[1], color);
+    draw_line(handle, corners[1], corners[2], color);
+    draw_line(handle, corners[2], corners[3], color);
+    draw_line(handle, corners[3], corners[0], color);
+    draw_line(handle, corners[4], corners[5], color);
+    draw_line(handle, corners[5], corners[6], color);
+    draw_line(handle, corners[6], corners[7], color);
+    draw_line(handle, corners[7], corners[4], color);
+    draw_line(handle, corners[0], corners[4], color);
+    draw_line(handle, corners[1], corners[5], color);
+    draw_line(handle, corners[2], corners[6], color);
+    draw_line(handle, corners[3], corners[7], color);
 
 }
 
-start_debug_drawing :: (transforms: Transforms) {
+start_debug_drawing :: (handle: Debug_Renderer_Handle, transforms: Transforms) {
+    debug_renderer := cast(*Debug_Renderer, handle);
+
     array_reset(*debug_renderer.vertices);
 
     debug_renderer.transforms = transforms;
 }
 
-begin_debug_pass :: () {
+begin_debug_pass :: (handle: Debug_Renderer_Handle) {
+    debug_renderer := cast(*Debug_Renderer, handle);
+
     using gl;
 
     glDisable(GL_CULL_FACE);
@@ -128,7 +144,9 @@ begin_debug_pass :: () {
     set_uniform(debug_renderer.shader, "uViewTransform", debug_renderer.transforms.view);
 }
 
-end_debug_pass :: () {
+end_debug_pass :: (handle: Debug_Renderer_Handle) {
+    debug_renderer := cast(*Debug_Renderer, handle);
+
     using gl;
 
     if debug_renderer.vertices.count == 0 {
@@ -165,8 +183,6 @@ Debug_Renderer :: struct {
 
     vertices: [..]Debug_Vertex;
 }
-
-debug_renderer: Debug_Renderer;
 
 Debug_Vertex :: struct {
     position: Vector3;
