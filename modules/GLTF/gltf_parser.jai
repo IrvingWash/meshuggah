@@ -16,6 +16,15 @@ GLTF :: struct {
     samplers:     [..]GLTF_Sampler;
 };
 
+GLTF_Component_Type :: struct {
+    I8  :: 5120;
+    U8  :: 5121;
+    I16 :: 5122;
+    U16 :: 5123;
+    U32 :: 5125;
+    F32 :: 5126;
+}
+
 GLTF_Texture :: struct {
     name: string;
 
@@ -223,15 +232,6 @@ release_gltf_file :: (gltf: *GLTF) {
     array_free(gltf.images);
 
     gltf.* = {};
-}
-
-GLTF_Component_Type :: struct {
-    I8  :: 5120;
-    U8  :: 5121;
-    I16 :: 5122;
-    U16 :: 5123;
-    U32 :: 5125;
-    F32 :: 5126;
 }
 
 
