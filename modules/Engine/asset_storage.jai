@@ -1,8 +1,19 @@
+#scope_module
+
+Asset_Storage :: struct {
+    model_storage: Model_Storage;
+    textures: Table(string, Renderer.Texture);
+}
+
 Model_Handle :: #type,distinct u32;
 
-init_asset_storage :: () {}
+init_asset_storage :: () -> *Asset_Storage {
+    asset_storage := New(Asset_Storage);
 
-deinit_asset_storage :: () {
+    return asset_storage;
+}
+
+deinit_asset_storage :: (asset_storage: *Asset_Storage) {
     destroy_model_storage(*asset_storage.model_storage);
 
     for *texture, path: asset_storage.textures {
@@ -11,10 +22,13 @@ deinit_asset_storage :: () {
     }
     deinit(*asset_storage.textures);
 
-    asset_storage = {};
+    free(asset_storage);
 }
 
-get_model_from_asset_storage :: (path: string) -> Model_Handle {
+get_model_from_asset_storage :: (
+    asset_storage: *Asset_Storage,
+    path: string,
+) -> Model_Handle {
     absolute_path, ok := get_absolute_path(path,, temp);
     assert(ok, "Failed to get absolute path for %", path);
 
@@ -24,7 +38,7 @@ get_model_from_asset_storage :: (path: string) -> Model_Handle {
         assert(ok, error_message);
         defer GLTF.release(*gltf_model_data);
 
-        model_data := convert_gltf_model_data(gltf_model_data);
+        model_data := convert_gltf_model_data(asset_storage, gltf_model_data);
         defer Renderer.destroy_model_data(*model_data);
 
         model := Renderer.create_model(model_data);
@@ -43,7 +57,10 @@ get_model_from_asset_storage :: (path: string) -> Model_Handle {
     return model_handle;
 }
 
-resolve_asset_storage_model :: (handle: Model_Handle) -> *Renderer.Model {
+resolve_asset_storage_model :: (
+    asset_storage: *Asset_Storage,
+    handle: Model_Handle,
+) -> *Renderer.Model {
     assert(
         handle < cast,no_check(Model_Handle, asset_storage.model_storage.models.count),
         "Incorrect handle: it's %, but the maximum is %",
@@ -57,13 +74,6 @@ resolve_asset_storage_model :: (handle: Model_Handle) -> *Renderer.Model {
 
 
 #scope_file
-
-Asset_Storage :: struct {
-    model_storage: Model_Storage;
-    textures: Table(string, Renderer.Texture);
-}
-
-asset_storage: Asset_Storage;
 
 Model_Storage :: struct {
     handles: Table(string, Model_Handle);
@@ -84,7 +94,7 @@ destroy_model_storage :: (model_storage: *Model_Storage) {
     model_storage.* = {};
 }
 
-convert_gltf_model_data :: (gltf_model: GLTF.Model_Data) -> Renderer.Model_Data {
+convert_gltf_model_data :: (asset_storage: *Asset_Storage, gltf_model: GLTF.Model_Data) -> Renderer.Model_Data {
     model_data: Renderer.Model_Data;
     array_reserve(*model_data.meshes, gltf_model.meshes.count);
     array_reserve(*model_data.nodes, gltf_model.nodes.count);

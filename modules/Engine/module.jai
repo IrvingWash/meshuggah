@@ -4,7 +4,7 @@ Directional_Light :: #type Renderer.Directional_Light;
 
 init :: ($$title: string, width: u32, height: u32, vsync: bool) {
     engine.window = Window.create_window(title, width, height, vsync);
-    init_asset_storage();
+    engine.asset_storage = init_asset_storage();
     engine.renderer = Renderer.init(get_framebuffer_size);
     init_input();
     init_time();
@@ -14,7 +14,7 @@ deinit :: () {
     deinit_time();
     deinit_input();
     Renderer.deinit(engine.renderer);
-    deinit_asset_storage();
+    deinit_asset_storage(engine.asset_storage);
     Window.destroy_window(engine.window);
 }
 
@@ -60,14 +60,21 @@ end_drawing_frame :: () {
     Renderer.end_drawing_frame(engine.renderer);
 }
 
+get_model_from_asset_storage :: (path: string) -> Model_Handle {
+    return get_model_from_asset_storage(engine.asset_storage, path);
+}
+
+resolve_asset_storage_model :: (handle: Model_Handle) -> Renderer.Model {
+    return resolve_asset_storage_model(engine.asset_storage, handle);
+}
+
 
 
 #scope_module
 
-engine: Engine;
-
 Renderer :: #import "Renderer"(DEBUG = DEBUG);
 
+engine: Engine; // @Todo move into file scope
 
 
 #scope_file
@@ -75,6 +82,7 @@ Renderer :: #import "Renderer"(DEBUG = DEBUG);
 Engine :: struct {
     window: Window.Window_Handle;
     renderer: Renderer.Renderer_Handle;
+    asset_storage: *Asset_Storage;
 }
 
 get_framebuffer_size :: () -> u32, u32 {
