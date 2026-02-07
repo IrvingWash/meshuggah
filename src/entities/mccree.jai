@@ -17,11 +17,11 @@ Evil_McCree :: struct {
 spawn_mccree :: () {
     mccree: McCree;
 
-    add_entity(mccree);
+    spawn_entity(mccree);
 }
 
 spawn_evil_mccree :: () {
     evil_mccree: Evil_McCree;
 
-    add_entity(evil_mccree);
+    spawn_entity(evil_mccree);
 }

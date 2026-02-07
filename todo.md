@@ -1,3 +1,4 @@
+- [ ] Remove as much globals as possible for readability
 - [ ] Remove temp allocator usage from modules where reasonable
 - [ ] Add comments for craete_<struct_name> procs on structs
 - [ ] Review all symbol scopes. Prefix intenal things with "_"

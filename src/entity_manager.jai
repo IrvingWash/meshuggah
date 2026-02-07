@@ -16,7 +16,7 @@ update_entity_manager :: () {
     entity_manager.all = get_all_entities();
 }
 
-add_entity :: (entity: $T)
+spawn_entity :: (entity: $T)
 #modify {
     return is_subclass_of(cast(*Type_Info, T), "Entity");
 }
@@ -44,9 +44,9 @@ add_entity :: (entity: $T)
         return builder_to_string(*builder);
     }
 
-    pointer.locator = locator;
     pointer.type = T;
-    pointer.id = entity_manager.next_id;
+    pointer.token.locator = locator;
+    pointer.token.id = entity_manager.next_id;
 
     if pointer.model_path {
         pointer.model = Engine.get_model_from_asset_storage(pointer.model_path);

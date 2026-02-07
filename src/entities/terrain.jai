@@ -8,5 +8,5 @@ Terrain :: struct {
 spawn_terrain :: () {
     terrain: Terrain;
 
-    add_entity(terrain);
+    spawn_entity(terrain);
 }

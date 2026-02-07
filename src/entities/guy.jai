@@ -12,5 +12,5 @@ spawn_guy :: () {
 
     set_from_axis_and_angle(*guy.orientation, { 0, 1, 0 }, Engine.deg_to_rad(-90));
 
-    add_entity(guy);
+    spawn_entity(guy);
 }

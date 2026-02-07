@@ -14,7 +14,7 @@ spawn_mech :: () {
 
     set_from_axis_and_angle(*mech.orientation, { 1, 0, 0 }, Engine.deg_to_rad(90));
 
-    add_entity(mech);
+    spawn_entity(mech);
 }
 
 update_mech :: (mech: *Mech) {

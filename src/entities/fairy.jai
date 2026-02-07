@@ -10,7 +10,7 @@ Fairy :: struct {
 spawn_fairy :: () {
     fairy: Fairy;
 
-    add_entity(fairy);
+    spawn_entity(fairy);
 }
 
 update_fairy :: (fairy: *Fairy, master: Entity) {
