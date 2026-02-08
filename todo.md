@@ -1,5 +1,3 @@
-- [ ] Remove as much globals as possible for readability
-- [ ] Listener removeal in Window
 - [ ] Add despawn_entity
 - [ ] Remove temp allocator usage from modules where reasonable
 - [ ] Add comments for craete_<struct_name> procs on structs
@@ -10,5 +8,3 @@
 - [ ] Use min/mag filter from GLTF
 - [ ] Add frustum culling
 - [ ] Logger
-- [x] Fix timer removal - don't clear in the loop
-- [x] Instancing

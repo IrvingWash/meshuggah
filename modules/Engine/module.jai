@@ -140,14 +140,14 @@ get_finished_timers :: inline () -> []u32 {
 
 #scope_module
 
-engine: Engine; // @Todo move into file scope
-
 Window :: #import "Window";
 Renderer :: #import "Renderer"(DEBUG = DEBUG);
 
 
 
 #scope_file
+
+engine: Engine;
 
 Engine :: struct {
     window: Window.Window_Handle;
