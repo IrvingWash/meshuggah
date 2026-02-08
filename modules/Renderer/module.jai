@@ -2,15 +2,15 @@
 
 #load "renderer.jai";
 #load "model.jai";
-#load "shader.jai";
 #load "texture.jai";
 #load "light.jai";
+#load "utils.jai";
 
 
 
 #scope_module
 
-#load "utils.jai";
+#load "shader.jai";
 
 #if DEBUG {
     #load "debug_renderer.jai";

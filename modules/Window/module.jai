@@ -1,22 +1,26 @@
+Window_Handle :: #type,distinct *void;
+
 Key :: GLFW.Key;
 Key_State :: GLFW.Key_State;
 
-Framebuffer_Size_Change_Handler :: #type (width: u32, height: u32);
-Scroll_Handler                  :: #type (x_offset: float, y_offset: float);
-Cursor_Position_Change_Handler  :: #type (x: float, y: float);
-Key_Handler                     :: #type (key: Key, state: Key_State);
-Window_Size_Change_Handler      :: #type (width: u32, height: u32);
-Window_Position_Change_Handler  :: #type(x: s32, y: s32);
+Framebuffer_Size_Change_Handler :: #type (width: u32, height: u32, data: *void);
+Scroll_Handler                  :: #type (x_offset: float, y_offset: float, data: *void);
+Cursor_Position_Change_Handler  :: #type (x: float, y: float, data: *void);
+Key_Handler                     :: #type (key: Key, state: Key_State, data: *void);
+Window_Size_Change_Handler      :: #type (width: u32, height: u32, data: *void);
+Window_Position_Change_Handler  :: #type(x: s32, y: s32, data: *void);
 
 Cursor_Mode :: enum {
     NORMAL;
     DISABLED;
 }
 
-create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
+create_window :: ($$title: string, width: u32, height: u32, vsync: bool) -> Window_Handle {
+    window_data := New(Window_Data);
+
     GLFW.set_error_callback(handle_glfw_error);
 
-    { // GLFW intitalization
+    { // GLFW initialization
         is_glfw_initialized := GLFW.init();
         assert(
             is_glfw_initialized,
@@ -106,23 +110,31 @@ create_window :: ($$title: string, width: u32, height: u32, vsync: bool) {
     }
 
     GLFW.focus_window(window_data.window);
+
+    GLFW.set_window_user_pointer(window_data.window, window_data);
+
+    return cast(Window_Handle, window_data);
 }
 
-destroy_window :: () {
+destroy_window :: (handle: Window_Handle) {
+    window_data := cast(*Window_Data, handle);
+
     GLFW.destroy_window(window_data.window);
     GLFW.terminate();
 
-    window_data.window = null;
+    array_free(window_data.callbacks.framebuffer_size_change_handlers);
+    array_free(window_data.callbacks.scroll_handlers);
+    array_free(window_data.callbacks.cursor_position_change_handlers);
+    array_free(window_data.callbacks.key_handlers);
+    array_free(window_data.callbacks.window_size_change_handlers);
+    array_free(window_data.callbacks.window_position_change_handlers);
 
-    array_free(window_data.framebuffer_size_change_handlers);
-    array_free(window_data.scroll_handlers);
-    array_free(window_data.cursor_position_change_handlers);
-    array_free(window_data.key_handlers);
-    array_free(window_data.window_size_change_handlers);
-    array_free(window_data.window_position_change_handlers);
+    free(window_data);
 }
 
-should_window_close :: inline () -> bool {
+should_window_close :: inline (handle: Window_Handle) -> bool {
+    window_data := cast(*Window_Data, handle);
+
     return GLFW.should_window_close(window_data.window);
 }
 
@@ -130,11 +142,15 @@ poll_events :: inline () {
     GLFW.poll_events();
 }
 
-swap_buffers :: inline () {
+swap_buffers :: inline (handle: Window_Handle) {
+    window_data := cast(*Window_Data, handle);
+
     GLFW.swap_buffers(window_data.window);
 }
 
-toggle_fullscreen :: () {
+toggle_fullscreen :: (handle: Window_Handle) {
+    window_data := cast(*Window_Data, handle);
+
     if window_data.is_fullscreen { // Windowed
         GLFW.set_window_monitor(
             window_data.window,
@@ -179,7 +195,9 @@ toggle_fullscreen :: () {
     window_data.is_fullscreen = !window_data.is_fullscreen;
 }
 
-toggle_vsync :: () {
+toggle_vsync :: (handle: Window_Handle) {
+    window_data := cast(*Window_Data, handle);
+
     if window_data.is_vsync_enabled {
         GLFW.set_swap_interval(0);
     } else {
@@ -190,62 +208,179 @@ toggle_vsync :: () {
 }
 
 add_framebuffer_size_change_handler :: (
+    handle: Window_Handle,
+    handler: Framebuffer_Size_Change_Handler,
+    data: *void,
+) {
+    window_data := cast(*Window_Data, handle);
+
+    array_add(
+        *window_data.callbacks.framebuffer_size_change_handlers,
+        { proc = handler, data = data },
+    );
+}
+
+remove_framebuffer_size_change_handler :: (
+    handle: Window_Handle,
     handler: Framebuffer_Size_Change_Handler,
 ) {
-    array_add(*window_data.framebuffer_size_change_handlers, handler);
+    window_data := cast(*Window_Data, handle);
+
+    for window_data.callbacks.framebuffer_size_change_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
 }
 
 add_scroll_handler :: (
+    handle: Window_Handle,
+    handler: Scroll_Handler,
+    data: *void,
+) {
+    window_data := cast(*Window_Data, handle);
+
+    array_add(
+        *window_data.callbacks.scroll_handlers,
+        { proc = handler, data = data },
+    );
+}
+
+remove_scroll_handler :: (
+    handle: Window_Handle,
     handler: Scroll_Handler,
 ) {
-    array_add(*window_data.scroll_handlers, handler);
+    window_data := cast(*Window_Data, handle);
+
+    for window_data.callbacks.scroll_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
 }
 
 add_cursor_position_change_handler :: (
+    handle: Window_Handle,
+    handler: Cursor_Position_Change_Handler,
+    data: *void
+) {
+    window_data := cast(*Window_Data, handle);
+
+    array_add(
+        *window_data.callbacks.cursor_position_change_handlers,
+        { proc = handler, data = data },
+    );
+}
+
+remove_cursor_position_change_handler :: (
+    handle: Window_Handle,
     handler: Cursor_Position_Change_Handler,
 ) {
-    array_add(
-        *window_data.cursor_position_change_handlers,
-        handler,
-    );
+    window_data := cast(*Window_Data, handle);
+
+    for window_data.callbacks.cursor_position_change_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
 }
 
 add_key_handler :: (
+    handle: Window_Handle,
+    handler: Key_Handler,
+    data: *void,
+) {
+    window_data := cast(*Window_Data, handle);
+
+    array_add(
+        *window_data.callbacks.key_handlers,
+        { proc = handler, data = data },
+    );
+}
+
+remove_key_handler :: (
+    handle: Window_Handle,
     handler: Key_Handler,
 ) {
-    array_add(
-        *window_data.key_handlers,
-        handler,
-    );
+    window_data := cast(*Window_Data, handle);
+
+    for window_data.callbacks.key_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
 }
 
 add_window_size_change_handler :: (
+    handle: Window_Handle,
+    handler: Window_Size_Change_Handler,
+    data: *void,
+) {
+    window_data := cast(*Window_Data, handle);
+
+    array_add(
+        *window_data.callbacks.window_size_change_handlers,
+        { proc = handler, data = data },
+    );
+}
+
+remove_window_size_change_handler :: (
+    handle: Window_Handle,
     handler: Window_Size_Change_Handler,
 ) {
-    array_add(
-        *window_data.window_size_change_handlers,
-        handler,
-    );
+    window_data := cast(*Window_Data, handle);
+
+    for window_data.callbacks.window_size_change_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
 }
 
 add_window_position_change_handler :: (
+    handle: Window_Handle,
     handler: Window_Position_Change_Handler,
+    data: *void,
 ) {
+    window_data := cast(*Window_Data, handle);
+
     array_add(
-        *window_data.window_position_change_handlers,
-        handler,
+        *window_data.callbacks.window_position_change_handlers,
+        { proc = handler, data = data },
     );
 }
 
-get_framebuffer_size :: () -> u32, u32 {
+remove_window_position_change_handler :: (
+    handle: Window_Handle,
+    handler: Window_Position_Change_Handler,
+) {
+    window_data := cast(*Window_Data, handle);
+
+    for window_data.callbacks.window_position_change_handlers {
+        if it.proc == handler {
+            remove it;
+        }
+    }
+}
+
+get_framebuffer_size :: (handle: Window_Handle) -> u32, u32 {
+    window_data := cast(*Window_Data, handle);
+
     return window_data.framebuffer_width, window_data.framebuffer_height;
 }
 
-get_key :: inline (key: Key) -> Key_State {
+get_key :: inline (
+    handle: Window_Handle,
+    key: Key,
+) -> Key_State {
+    window_data := cast(*Window_Data, handle);
+
     return GLFW.get_key(window_data.window, key);
 }
 
-set_cursor_mode :: (mode: Cursor_Mode) {
+set_cursor_mode :: (handle: Window_Handle, mode: Cursor_Mode) {
+    window_data := cast(*Window_Data, handle);
+
     if mode == {
         case Cursor_Mode.NORMAL;
             GLFW.set_input_mode(window_data.window, GLFW.Input_Mode.CURSOR, GLFW.Input_Mode_Value.CURSOR_NORMAL);
@@ -259,9 +394,9 @@ set_cursor_mode :: (mode: Cursor_Mode) {
 #scope_file
 
 Window_Data :: struct {
-    window:  *GLFW.Window;
-    monitor: *GLFW.Monitor;
-    video_mode: GLFW.Video_Mode;
+    window:  *Window;
+    monitor: *Monitor;
+    video_mode: Video_Mode;
 
     framebuffer_width: u32;
     framebuffer_height: u32;
@@ -275,12 +410,7 @@ Window_Data :: struct {
     is_vsync_enabled: bool;
     is_fullscreen: bool;
 
-    framebuffer_size_change_handlers: [..]Framebuffer_Size_Change_Handler;
-    scroll_handlers: [..]Scroll_Handler;
-    cursor_position_change_handlers: [..]Cursor_Position_Change_Handler;
-    key_handlers: [..]Key_Handler;
-    window_size_change_handlers: [..]Window_Size_Change_Handler;
-    window_position_change_handlers: [..]Window_Position_Change_Handler;
+    callbacks: Callbacks;
 
     windowed_cache: struct {
         x_position: s32;
@@ -290,7 +420,29 @@ Window_Data :: struct {
     }
 }
 
-window_data: Window_Data;
+Callbacks :: struct {
+    framebuffer_size_change_handlers: [..]Handler(Framebuffer_Size_Change_Handler);
+    scroll_handlers: [..]Handler(Scroll_Handler);
+    cursor_position_change_handlers: [..]Handler(Cursor_Position_Change_Handler);
+    key_handlers: [..]Handler(Key_Handler);
+    window_size_change_handlers: [..]Handler(Window_Size_Change_Handler);
+    window_position_change_handlers: [..]Handler(Window_Position_Change_Handler);
+}
+
+Handler :: struct ($T: Type)
+#modify {
+    ti := cast(*Type_Info, T);
+
+    return ti.type == .PROCEDURE;
+}
+{
+    data: *void;
+    proc: T;
+}
+
+Window :: #type GLFW.Window;
+Monitor :: #type GLFW.Monitor;
+Video_Mode :: #type GLFW.Video_Mode;
 
 handle_glfw_error: GLFW.Error_Proc : (code: s32, description: *u8) #c_call {
     push_context {
@@ -307,12 +459,14 @@ handle_framebuffer_size_change: GLFW.Framebuffer_Size_Proc : (
     width: s32,
     height: s32,
 ) #c_call {
+    window_data := cast(*Window_Data, GLFW.get_window_user_pointer(window));
+
     window_data.framebuffer_width = cast(u32, width);
     window_data.framebuffer_height = cast(u32, height);
 
     push_context {
-        for proc: window_data.framebuffer_size_change_handlers {
-            proc(window_data.framebuffer_width, window_data.framebuffer_height);
+        for handler: window_data.callbacks.framebuffer_size_change_handlers {
+            handler.proc(window_data.framebuffer_width, window_data.framebuffer_height, handler.data);
         }
     }
 }
@@ -322,9 +476,11 @@ handle_scroll: GLFW.Scroll_Proc : (
     x_offset: float64,
     y_offset: float64,
 ) #c_call {
+    window_data := cast(*Window_Data, GLFW.get_window_user_pointer(window));
+
     push_context {
-        for proc: window_data.scroll_handlers {
-            proc(cast(float, x_offset), cast(float, y_offset));
+        for handler: window_data.callbacks.scroll_handlers {
+            handler.proc(cast(float, x_offset), cast(float, y_offset), handler.data);
         }
     }
 }
@@ -334,9 +490,11 @@ handle_cursor_position_change: GLFW.Cursor_Position_Proc : (
     x: float64,
     y: float64,
 ) #c_call {
+    window_data := cast(*Window_Data, GLFW.get_window_user_pointer(window));
+
     push_context {
-        for proc: window_data.cursor_position_change_handlers {
-            proc(cast(float, x), cast(float, y));
+        for handler: window_data.callbacks.cursor_position_change_handlers {
+            handler.proc(cast(float, x), cast(float, y), handler.data);
         }
     }
 }
@@ -348,9 +506,11 @@ handle_key: GLFW.Key_Proc : (
     action: GLFW.Key_State,
     mods: s32,
 ) #c_call {
+    window_data := cast(*Window_Data, GLFW.get_window_user_pointer(window));
+
     push_context {
-        for proc: window_data.key_handlers {
-            proc(key, action);
+        for handler: window_data.callbacks.key_handlers {
+            handler.proc(key, action, handler.data);
         }
     }
 }
@@ -360,12 +520,14 @@ handle_window_size_change: GLFW.Window_Size_Proc : (
     width: s32,
     height: s32,
 ) #c_call {
+    window_data := cast(*Window_Data, GLFW.get_window_user_pointer(window));
+
     window_data.logical_width = cast(u32, width);
     window_data.logical_height = cast(u32, height);
 
     push_context {
-        for proc: window_data.window_size_change_handlers {
-            proc(cast(u32, width), cast(u32, height));
+        for handler: window_data.callbacks.window_size_change_handlers {
+            handler.proc(cast(u32, width), cast(u32, height), handler.data);
         }
     }
 }
@@ -375,12 +537,14 @@ handle_window_position_change: GLFW.Window_Position_Proc : (
     x: s32,
     y: s32,
 ) #c_call {
+    window_data := cast(*Window_Data, GLFW.get_window_user_pointer(window));
+
     window_data.x_position = x;
     window_data.y_position = y;
 
     push_context {
-        for proc: window_data.window_position_change_handlers {
-            proc(x, y);
+        for handler: window_data.callbacks.window_position_change_handlers {
+            handler.proc(x, y, handler.data);
         }
     }
 }

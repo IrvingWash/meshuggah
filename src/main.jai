@@ -48,7 +48,7 @@ main :: () {
 
     look_at(*fly_camera, entity_manager.storage._McCree[0].position);
 
-    while !Engine.is_quit_requested() {
+    while !Engine.is_terminating() {
         Engine.begin_frame();
 
         update_entity_manager();
@@ -71,7 +71,7 @@ main :: () {
             Engine.set_directional_light(sun);
             Engine.set_ambient_light({ 0.1, 0, 0 });
             for entity: entity_manager.all {
-                Engine.draw(
+                Engine.draw_model(
                     Engine.resolve_asset_storage_model(entity.model),
                     get_entity_transform(entity),
                     entity.tint,
