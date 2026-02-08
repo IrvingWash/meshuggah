@@ -1,3 +1,5 @@
+- [ ] We use asserts a lot. They are disabled in optimized builds. Need at least a logging system asap.
+    Maybe should have logging only in the Engine module and let other modules return error messages
 - [ ] Add despawn_entity
 - [ ] Remove temp allocator usage from modules where reasonable
 - [ ] Add comments for craete_<struct_name> procs on structs
