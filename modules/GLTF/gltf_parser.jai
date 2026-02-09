@@ -25,6 +25,12 @@ GLTF_Component_Type :: struct {
     F32 :: 5126;
 }
 
+GLTF_Wrapping_Mode :: struct {
+    CLAMP_TO_EDGE   :: 33071;
+    MIRRORED_REPEAT :: 33648;
+    REPEAT          :: 10497;
+}
+
 GLTF_Texture :: struct {
     name: string;
 
@@ -39,8 +45,11 @@ GLTF_Image :: struct {
 }
 
 GLTF_Sampler :: struct {
-    mag_filter: int = -1; @JsonName(magFilter)
-    min_filter: int = -1; @JsonName(minFilter)
+    mag_filter: int = GLTF_Texture_Filter.LINEAR;               @JsonName(magFilter)
+    min_filter: int = GLTF_Texture_Filter.LINEAR_MIPMAP_LINEAR; @JsonName(minFilter)
+
+    wrapS: int = GLTF_Wrapping_Mode.REPEAT;
+    wrapT: int = GLTF_Wrapping_Mode.REPEAT;
 }
 
 GLTF_Asset :: struct {
@@ -65,20 +74,25 @@ GLTF_Node :: struct {
     // We transpose here the matrix so the default value of GLTF_Node is column-major too, for consistency.
     // So, this is field contains a column-major matrix.
     matrix: [16]float = #run transpose(Matrix4_Identity).floats;
+
+    translation: [3]float;
+    rotation:    [4]float = float.[0, 0, 0, 1];
+    scale:       [3]float = float.[1, 1, 1];
 }
 
 GLTF_Material :: struct {
     name: string;
     double_sided: bool; @JsonName(doubleSided)
     pbr_metallic_roughness: GLTF_PBR_Metallic_Roughness; @JsonName(pbrMetallicRoughness)
+    alpha_mode: string = GLTF_Alpha_Mode.OPAQUE; @JsonName(alphaMode)
 }
 
 GLTF_PBR_Metallic_Roughness :: struct {
-    base_color_factor: [4]float = float.[1, 1, 1, 1]; @JsonName(baseColorFactor);
     base_color_texture: GLTF_Base_Color_Texture; @JsonName(baseColorTexture)
 
-    metallic_factor:  float; @JsonName(metallicFactor)
-    roughness_factor: float; @JsonName(roughnessFactor)
+    base_color_factor: [4]float = float.[1, 1, 1, 1]; @JsonName(baseColorFactor);
+    metallic_factor:   float    = 1;                  @JsonName(metallicFactor)
+    roughness_factor:  float    = 1;                  @JsonName(roughnessFactor)
 }
 
 GLTF_Base_Color_Texture :: struct {
@@ -140,6 +154,12 @@ GLTF_Accessor_Type :: struct {
     VEC3   :: "VEC3";
     VEC4   :: "VEC4";
     MAT4   :: "MAT4";
+}
+
+GLTF_Alpha_Mode :: struct {
+    OPAQUE :: "OPAQUE";
+    MASK   :: "MASK";
+    BLEND  :: "BLEND";
 }
 
 parse_gltf_file :: (path: string) -> ok: bool, error_message: string, GLTF {
