@@ -18,6 +18,7 @@ Engine :: #import "Engine"()(DEBUG = DEBUG);
 #load "entities/terrain.jai";
 #load "entities/guy.jai";
 #load "entities/mccree.jai";
+#load "entities/gyro_ball.jai";
 
 main :: () {
     #if DEBUG {
@@ -40,6 +41,7 @@ main :: () {
     spawn_mccree();
     spawn_evil_mccree();
     spawn_terrain();
+    spawn_gyro_ball();
 
     sun: Engine.Directional_Light = {
         direction = { 0, -1, -1 },
