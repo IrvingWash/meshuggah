@@ -117,6 +117,7 @@ GLTF_Attributes :: struct {
 }
 
 GLTF_Accessor :: struct {
+    name: string;
     buffer_view: int = -1; @JsonName(bufferView)
     byte_offset: u32; @JsonName(byteOffset)
     component_type: u32; @JsonName(componentType)
@@ -124,6 +125,7 @@ GLTF_Accessor :: struct {
     max: [..]float;
     min: [..]float;
     type: string;
+    normalized: bool;
 }
 
 GLTF_Buffer_View :: struct {

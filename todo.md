@@ -1,3 +1,4 @@
+- [ ] Reimplement GLTF types using the spec.
 - [ ] get_all_entities sucks. It defeats the point of having contiguous bucket arrays, as we iterate by all entities. Replace it!
 - [ ] We use asserts a lot. They are disabled in optimized builds. Need at least a logging system asap.
     Maybe should have logging only in the Engine module and let other modules return error messages
