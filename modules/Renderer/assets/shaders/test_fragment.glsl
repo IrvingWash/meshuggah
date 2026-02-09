@@ -17,6 +17,8 @@ struct DirectionalLight
     vec3 color;
 };
 
+// In
+
 in FragmentData
 {
     vec3 normal;
@@ -24,9 +26,13 @@ in FragmentData
     vec4 tint;
 } fragmentData;
 
+// Uniform
+
 uniform Material uMaterial;
 uniform AmbientLight uAmbientLight;
 uniform DirectionalLight uDirectionalLight;
+
+// Out
 
 out vec4 fragmentColor;
 
