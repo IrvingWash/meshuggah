@@ -5,9 +5,9 @@
 layout (location = 0) in vec3 aPosition;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aUV;
-layout (location = 3) in vec4 aTint;
-layout (location = 4) in mat4 aModelTransform;
-layout (location = 8) in mat3 aNormalTransform;
+layout (location = 3) in vec4 iTint;
+layout (location = 4) in mat4 iModelTransform;
+layout (location = 8) in mat3 iNormalTransform;
 
 // Uniform
 
@@ -25,11 +25,11 @@ out FragmentData
 
 void main()
 {
-    vec4 worldPosition = aModelTransform * vec4(aPosition, 1);
+    vec4 worldPosition = iModelTransform * vec4(aPosition, 1);
 
     gl_Position = uProjectionTransform * uViewTransform * worldPosition;
 
-    fragmentData.normal = aNormalTransform * aNormal;
+    fragmentData.normal = iNormalTransform * aNormal;
     fragmentData.uv = aUV;
-    fragmentData.tint = aTint;
+    fragmentData.tint = iTint;
 }
