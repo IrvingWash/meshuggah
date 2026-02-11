@@ -3,6 +3,8 @@
 // @Todo: enums instead of strings
 // @Todo Texture
 // @Todo unions instead of sentinels?
+// https://github.com/KhronosGroup/glTF-Sample-Assets/blob/main/Models/Models-core.md
+// https://github.com/KhronosGroup/glTF-Sample-Assets/blob/main/Models/Models-testing.md
 
 GLTF :: struct {
      accessors:    [..]GLTF_Accessor;
